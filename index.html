@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoachFlow - Die SaaS-Plattform für Coaches</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-brand">
+        <h1>CoachFlow</h1>
+      </div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Preise</a>
+        <a href="#contact">Kontakt</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">Deine Membership-Website in Minuten</h1>
+        <p class="hero-subtitle">
+          CoachFlow ist die All-in-One-Plattform für Fitness- und Yoga-Coaches. 
+          Erstelle deine eigene Membership-Website, verkaufe Online-Kurse und 
+          verwalte deine Kunden - alles an einem Ort.
+        </p>
+        <a href="#pricing" class="btn btn-primary btn-lg">Jetzt starten</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="container">
+      <h2 class="section-title">Alles, was du brauchst</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎥</div>
+          <h3>Video-Streaming</h3>
+          <p>Lade deine Trainingsvideos hoch und streame sie sicher an deine Mitglieder.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💳</div>
+          <h3>Automatische Zahlungen</h3>
+          <p>Stripe Connect kümmert sich um alle Zahlungen - direkt auf dein Girokonto.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>Flexible Mitgliedschaften</h3>
+          <p>Erstelle dein individuelles Membership-Tier mit eigenem Preis und Leistungen.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>Mobile-Optimiert</h3>
+          <p>Deine Membership-Website funktioniert perfekt auf allen Geräten.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Dashboard & Analytics</h3>
+          <p>Behalte den Überblick über deine Mitglieder und Einnahmen.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Sofort einsatzbereit</h3>
+          <p>Keine technischen Kenntnisse erforderlich. Starte in wenigen Minuten.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section id="pricing" class="pricing">
+    <div class="container">
+      <h2 class="section-title">Wähle deinen Plan</h2>
+      <p class="section-subtitle">Monatliche Plattformgebühr - Jederzeit kündbar</p>
+      
+      <div class="pricing-grid">
+        <!-- Basic Plan -->
+        <div class="pricing-card">
+          <div class="plan-header">
+            <h3>Basic</h3>
+            <div class="plan-price">
+              <span class="price">49€</span>
+              <span class="period">/Monat</span>
+            </div>
+          </div>
+          <ul class="plan-features">
+            <li>✅ 1 Membership-Tier</li>
+            <li>✅ Unbegrenzte Videos</li>
+            <li>✅ PDF & Bild-Upload</li>
+            <li>✅ Stripe Connect Integration</li>
+            <li>✅ Mitgliederverwaltung</li>
+            <li>✅ E-Mail Support</li>
+          </ul>
+          <form id="basicForm" class="pricing-form">
+            <input type="text" name="name" placeholder="Dein Name" required>
+            <input type="email" name="email" placeholder="Deine E-Mail" required>
+            <button type="submit" class="btn btn-primary">Basic wählen</button>
+          </form>
+        </div>
+
+        <!-- Premium Plan -->
+        <div class="pricing-card featured">
+          <div class="popular-badge">Beliebt</div>
+          <div class="plan-header">
+            <h3>Premium</h3>
+            <div class="plan-price">
+              <span class="price">199€</span>
+              <span class="period">/Monat</span>
+            </div>
+          </div>
+          <ul class="plan-features">
+            <li>✅ Alles aus Basic</li>
+            <li>✅ Custom Branding</li>
+            <li>✅ Eigene Domain</li>
+            <li>✅ Analytics Dashboard</li>
+            <li>✅ Prioritäts-Support</li>
+            <li>✅ White-Label Option</li>
+          </ul>
+          <form id="premiumForm" class="pricing-form">
+            <input type="text" name="name" placeholder="Dein Name" required>
+            <input type="email" name="email" placeholder="Deine E-Mail" required>
+            <button type="submit" class="btn btn-primary">Premium wählen</button>
+          </form>
+        </div>
+
+        <!-- Elite Plan -->
+        <div class="pricing-card">
+          <div class="plan-header">
+            <h3>Elite</h3>
+            <div class="plan-price">
+              <span class="price">399€</span>
+              <span class="period">/Monat</span>
+            </div>
+          </div>
+          <ul class="plan-features">
+            <li>✅ Alles aus Premium</li>
+            <li>✅ Dedizierter Support</li>
+            <li>✅ API-Zugriff</li>
+            <li>✅ Custom Entwicklung</li>
+            <li>✅ Persönlicher Onboarding-Call</li>
+            <li>✅ Monatliche Beratung</li>
+          </ul>
+          <form id="eliteForm" class="pricing-form">
+            <input type="text" name="name" placeholder="Dein Name" required>
+            <input type="email" name="email" placeholder="Deine E-Mail" required>
+            <button type="submit" class="btn btn-primary">Elite wählen</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="contact">
+    <div class="container">
+      <h2 class="section-title">Fragen? Wir helfen gerne!</h2>
+      <p class="section-subtitle">Kontaktiere uns unter: <a href="mailto:support@coachflow.de">support@coachflow.de</a></p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-links">
+        <a href="agb.html">AGB</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="impressum.html">Impressum</a>
+      </div>
+      <p>&copy; 2025 CoachFlow. Alle Rechte vorbehalten.</p>
+    </div>
+  </footer>
+
+  <script src="landing.js"></script>
+</body>
+</html>

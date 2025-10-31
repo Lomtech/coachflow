@@ -1,0 +1,33 @@
+
+{
+  "name": "coachflow",
+  "version": "1.0.0",
+  "description": "SaaS-Plattform für Fitness- und Yoga-Coaches mit Membership-Websites",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step required'",
+    "deploy": "netlify deploy --prod"
+  },
+  "keywords": [
+    "saas",
+    "coaching",
+    "membership",
+    "stripe",
+    "supabase",
+    "netlify"
+  ],
+  "author": "CoachFlow",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "resend": "^3.0.0",
+    "stripe": "^14.10.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.10.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
