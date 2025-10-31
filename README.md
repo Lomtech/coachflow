@@ -1,485 +1,319 @@
-# 🚀 CoachFlow - SaaS-Plattform für Coaches
+# 🏋️ CoachFlow - Premium Fitness Training Platform
 
-Eine vollständige SaaS-Lösung für Fitness- und Yoga-Coaches, die eigene Membership-Websites anbieten möchten.
+![Status](https://img.shields.io/badge/status-active-success)
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
-## 📋 Inhaltsverzeichnis
+Eine moderne, DSGVO-konforme SaaS-Plattform für Personal Training mit Vanilla JS, Supabase Backend und Stripe Payments.
 
-- [Überblick](#überblick)
-- [Features](#features)
-- [Technologie-Stack](#technologie-stack)
-- [Voraussetzungen](#voraussetzungen)
-- [Installation](#installation)
-- [Konfiguration](#konfiguration)
-- [Deployment](#deployment)
-- [Verwendung](#verwendung)
-- [Projektstruktur](#projektstruktur)
-- [Troubleshooting](#troubleshooting)
+## 🚀 Live Demo
 
-## 🎯 Überblick
+- **Produktion**: https://coachflow1.netlify.app/
+- **Status**: https://coachflow1.netlify.app/
 
-CoachFlow ermöglicht es Coaches:
-- Eine eigene Membership-Website zu erstellen
-- Inhalte (Videos, PDFs, Bilder) hochzuladen
-- Zahlungen von Kunden zu empfangen (direkt auf ihr Girokonto)
-- Mitglieder zu verwalten
+## 📋 Features
 
-### Geschäftsmodell
+- ✅ **3 Subscription-Pläne**: Basis (€29), Premium (€59), Elite (€99)
+- ✅ **Upgrade/Downgrade**: Jederzeit zwischen Plänen wechseln
+- ✅ **Content Management**: Videos, Dokumente, Bilder mit Zugriffskontrolle
+- ✅ **Stripe Integration**: Sichere Zahlungsabwicklung
+- ✅ **Supabase Backend**: Authentifizierung & Datenspeicherung
+- ✅ **DSGVO-konform**: Cookie-Banner, Datenschutz, Impressum, AGB
+- ✅ **Responsive Design**: Mobile-first Ansatz
+- ✅ **Demo-Modus**: Funktioniert auch ohne Stripe für Testing
 
-- **Coaches** zahlen monatlich an den Plattform-Betreiber (49€/199€/399€)
-- **Kunden** der Coaches zahlen direkt an den Coach via Stripe Connect
-- Geld geht direkt auf das Girokonto des Coaches
+## 🔧 Tech Stack
 
-## ✨ Features
-
-### Landing Page
-- Hero-Section mit Erklärung
-- Features-Übersicht
-- Preisgestaltung (Basic/Premium/Elite)
-- Stripe Checkout Integration
-- Links zu AGB, Datenschutz, Impressum
-
-### Coach Dashboard
-- **Tier-Konfigurator**: 1 Tier mit Name, Preis, Beschreibung
-- **Upload-System**: Videos, PDFs, Bilder hochladen
-- **Stripe Connect**: Girokonto verbinden
-- **Membership-Link**: Teilbarer Link für Kunden
-- **Statistiken**: Mitglieder-Anzahl, Inhalte-Anzahl
-
-### Kunden-Portal
-- Login/Registrierung
-- Tier-Informationen anzeigen
-- Stripe Checkout für Mitgliedschaft
-- Zugriff auf alle Inhalte nach Zahlung
-- Video-Player, PDF-Viewer, Bild-Anzeige
-
-## 🛠 Technologie-Stack
-
-- **Frontend**: Vanilla JavaScript, HTML, CSS
-- **Backend**: Netlify Serverless Functions
-- **Datenbank**: Supabase (PostgreSQL)
-- **Authentifizierung**: Supabase Auth
-- **Speicher**: Supabase Storage
-- **Zahlungen**: Stripe Connect (Express)
-- **E-Mail**: Resend.com
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Backend**: Supabase (PostgreSQL, Auth, Storage)
+- **Payments**: Stripe Connect & Subscriptions
+- **Emails**: Resend API
 - **Hosting**: Netlify
+- **Build**: Node.js
 
-## 📦 Voraussetzungen
+## 🐛 Häufige Deployment-Probleme
 
-Bevor du beginnst, stelle sicher, dass du folgende Accounts hast:
+### **Problem: 404 "Page not found" Error auf Netlify**
 
-1. **Stripe Account**: [stripe.com](https://stripe.com)
-   - Test-Modus für Entwicklung
-   - Live-Modus für Produktion
+#### Ursache
+Die Seite zeigt einen 404-Fehler, weil der Build-Prozess ohne die erforderlichen Environment Variables fehlschlägt oder keine Dateien in das `dist/` Verzeichnis kopiert.
 
-2. **Supabase Account**: [supabase.com](https://supabase.com)
-   - Erstelle ein neues Projekt
+#### Lösung
 
-3. **Resend Account**: [resend.com](https://resend.com)
-   - Für E-Mail-Versand
+**1. Setze die Environment Variables in Netlify:**
 
-4. **Netlify Account**: [netlify.com](https://netlify.com)
-   - Für Hosting und Functions
-
-5. **Git/GitHub Account**: Für Version Control
-
-## 🔧 Installation
-
-### 1. Repository klonen oder erstellen
-
-```bash
-# Wenn du ein neues Repository erstellst:
-mkdir coachflow
-cd coachflow
-
-# Oder klone dieses Repository:
-git clone <your-repo-url>
-cd coachflow
+Gehe zu deinem Netlify Dashboard:
+```
+Site Settings → Build & Deploy → Environment → Environment variables
 ```
 
-### 2. Dependencies installieren
+Füge folgende Variablen hinzu:
+
+| Variable | Wert | Pflicht |
+|----------|------|---------|
+| `SUPABASE_URL` | `https://your-project.supabase.co` | ✅ JA |
+| `SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIs...` | ✅ JA |
+| `STRIPE_PUBLISHABLE_KEY` | `pk_test_51...` | ⚠️ Optional* |
+
+*\*Ohne Stripe läuft die App im Demo-Modus*
+
+**2. Finde deine Supabase Credentials:**
+
+1. Gehe zu: https://app.supabase.com/project/YOUR_PROJECT/settings/api
+2. Kopiere **Project URL** → `SUPABASE_URL`
+3. Kopiere **anon/public key** → `SUPABASE_ANON_KEY`
+
+**3. Trigger einen Rebuild:**
 
 ```bash
-npm install
-```
+# Option 1: Im Netlify Dashboard
+Deploys → Trigger deploy → Deploy site
 
-### 3. Umgebungsvariablen einrichten
-
-```bash
-cp .env.example .env
-```
-
-Öffne `.env` und füge deine API-Keys ein (siehe [Konfiguration](#konfiguration)).
-
-## ⚙️ Konfiguration
-
-### Stripe einrichten
-
-1. Gehe zu [Stripe Dashboard](https://dashboard.stripe.com)
-2. Navigiere zu **Developers** > **API Keys**
-3. Kopiere:
-   - Publishable Key → `STRIPE_PUBLISHABLE_KEY`
-   - Secret Key → `STRIPE_SECRET_KEY`
-
-4. Erstelle Produkte und Preise:
-   - Gehe zu **Products** > **Create Product**
-   - Erstelle 3 Produkte:
-     - Basic (49€/Monat)
-     - Premium (199€/Monat)
-     - Elite (399€/Monat)
-   - Kopiere die Price IDs → `STRIPE_PRICE_BASIC`, `STRIPE_PRICE_PREMIUM`, `STRIPE_PRICE_ELITE`
-
-5. Aktiviere Stripe Connect:
-   - Gehe zu **Connect** > **Settings**
-   - Aktiviere Express Accounts
-
-6. Erstelle Webhook:
-   - Gehe zu **Developers** > **Webhooks**
-   - Klicke auf **Add endpoint**
-   - URL: `https://your-site.netlify.app/.netlify/functions/stripe-webhook`
-   - Events auswählen:
-     - `checkout.session.completed`
-     - `customer.subscription.deleted`
-     - `customer.subscription.updated`
-   - Kopiere Signing Secret → `STRIPE_WEBHOOK_SECRET`
-
-### Supabase einrichten
-
-1. Gehe zu [Supabase Dashboard](https://app.supabase.com)
-2. Erstelle ein neues Projekt
-3. Navigiere zu **Settings** > **API**
-4. Kopiere:
-   - URL → `SUPABASE_URL`
-   - Anon Key → `SUPABASE_ANON_KEY`
-   - Service Role Key → `SUPABASE_SERVICE_KEY` ⚠️ (Niemals im Frontend verwenden!)
-
-5. Datenbank einrichten:
-   - Gehe zu **SQL Editor**
-   - Öffne `supabase/schema.sql`
-   - Kopiere den gesamten Inhalt
-   - Füge ihn in den SQL Editor ein
-   - Klicke auf **Run**
-
-6. Storage einrichten:
-   - Die Buckets werden automatisch durch das Schema erstellt
-   - Überprüfe unter **Storage**, ob `videos`, `documents`, `images` existieren
-
-7. Auth konfigurieren:
-   - Gehe zu **Authentication** > **Settings**
-   - Aktiviere **Email** als Provider
-   - Optional: Deaktiviere E-Mail-Bestätigung für Testing
-
-### Resend einrichten
-
-1. Gehe zu [Resend Dashboard](https://resend.com/api-keys)
-2. Erstelle einen neuen API Key
-3. Kopiere den Key → `RESEND_API_KEY`
-
-4. Domain verifizieren (optional, für Produktion):
-   - Gehe zu **Domains**
-   - Füge deine Domain hinzu
-   - Folge den DNS-Anweisungen
-
-### Netlify einrichten
-
-Siehe [Deployment](#deployment) weiter unten.
-
-## 🚀 Deployment
-
-### Lokale Entwicklung
-
-```bash
-# Starte den Netlify Dev Server
-netlify dev
-
-# Die App läuft auf http://localhost:8888
-```
-
-### Deployment zu Netlify
-
-#### Option 1: Netlify CLI
-
-```bash
-# Installiere Netlify CLI (falls noch nicht installiert)
-npm install -g netlify-cli
-
-# Login zu Netlify
-netlify login
-
-# Erstelle eine neue Site
-netlify init
-
-# Deploy
+# Option 2: Via CLI
 netlify deploy --prod
 ```
 
-#### Option 2: GitHub Integration
+**4. Überprüfe den Build-Log:**
 
-1. Pushe deinen Code zu GitHub:
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin <your-repo-url>
-git push -u origin main
+Nach dem Deployment solltest du sehen:
+```
+✅ SUPABASE_URL: https://ftohghotvfgkoeclmw...
+✅ SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIs...
+✅ Build erfolgreich abgeschlossen!
 ```
 
-2. Gehe zu [Netlify Dashboard](https://app.netlify.com)
-3. Klicke auf **Add new site** > **Import an existing project**
-4. Wähle **GitHub** und autorisiere Netlify
-5. Wähle dein Repository
-6. Build-Einstellungen:
-   - Build command: `echo 'No build step required'`
-   - Publish directory: `.`
-   - Functions directory: `netlify/functions`
-7. Klicke auf **Deploy site**
+### **Problem: Build funktioniert, aber Seite zeigt "DEIN_SUPABASE_URL"**
 
-### Umgebungsvariablen in Netlify setzen
+Dies bedeutet, dass die Environment Variables nicht korrekt ersetzt wurden.
 
-1. Gehe zu deiner Site in Netlify
-2. Navigiere zu **Site settings** > **Environment variables**
-3. Klicke auf **Add a variable**
-4. Füge alle Variablen aus `.env.example` hinzu:
-   - `STRIPE_SECRET_KEY`
-   - `STRIPE_PUBLISHABLE_KEY`
-   - `STRIPE_WEBHOOK_SECRET`
-   - `STRIPE_PRICE_BASIC`
-   - `STRIPE_PRICE_PREMIUM`
-   - `STRIPE_PRICE_ELITE`
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_KEY`
-   - `RESEND_API_KEY`
+**Lösung:**
+1. Überprüfe die Schreibweise der Environment Variables (exakt wie oben)
+2. Stelle sicher, dass keine Leerzeichen am Anfang/Ende der Werte sind
+3. Trigger einen neuen Deploy
 
-5. Die Variable `URL` wird automatisch von Netlify gesetzt
+## 📦 Lokale Entwicklung
 
-### Nach dem Deployment
+### Voraussetzungen
 
-1. **Stripe Webhook aktualisieren**:
-   - Gehe zu Stripe Dashboard > Webhooks
-   - Aktualisiere die Webhook-URL auf: `https://your-actual-site.netlify.app/.netlify/functions/stripe-webhook`
+- Node.js >= 14.0.0
+- Git
+- Ein Supabase-Projekt
+- (Optional) Ein Stripe-Account
 
-2. **Teste die Anwendung**:
-   - Öffne `https://your-site.netlify.app`
-   - Registriere einen Test-Coach
-   - Teste den Stripe Checkout (verwende Test-Karten: `4242 4242 4242 4242`)
+### Installation
 
-## 📖 Verwendung
+```bash
+# Repository klonen
+git clone https://github.com/yourusername/coachflow.git
+cd coachflow
 
-### Als Plattform-Betreiber
+# Environment Variables setzen
+cp .env.example .env
+# Bearbeite .env und füge deine Credentials ein
 
-1. Stelle die Landing Page online
-2. Coaches können sich anmelden und einen Plan wählen
-3. Nach erfolgreicher Zahlung erhalten Coaches:
-   - Zugang zum Dashboard
-   - Onboarding-E-Mail mit Anleitung
-   - Link zum Stripe Connect Onboarding
+# Build ausführen
+npm run build
 
-### Als Coach
+# Lokalen Server starten
+npm run dev
+```
 
-1. **Registrierung**:
-   - Gehe zur Landing Page
-   - Wähle einen Plan (Basic/Premium/Elite)
-   - Fülle das Formular aus
-   - Schließe Stripe Checkout ab
+### Build-Befehle
 
-2. **Dashboard-Setup**:
-   - Logge dich im Dashboard ein
-   - Verbinde dein Girokonto (Stripe Connect)
-   - Erstelle dein Membership-Tier (Name, Preis, Beschreibung)
-   - Lade Inhalte hoch (Videos, PDFs, Bilder)
+```bash
+# Build erstellen
+npm run build
 
-3. **Kunden gewinnen**:
-   - Kopiere deinen Membership-Link
-   - Teile ihn auf Social Media, Website, etc.
-   - Kunden können sich direkt anmelden und bezahlen
+# Entwicklungsserver starten (root directory)
+npm run dev
 
-### Als Kunde
+# Entwicklungsserver für dist/ Ordner
+npm run serve:dist
 
-1. **Anmeldung**:
-   - Klicke auf den Membership-Link deines Coaches
-   - Sieh dir das Tier-Angebot an
-   - Registriere dich oder logge dich ein
-   - Schließe Stripe Checkout ab
+# Dist-Ordner löschen
+npm run clean
 
-2. **Inhalte ansehen**:
-   - Nach erfolgreicher Zahlung: Zugriff auf alle Inhalte
-   - Videos abspielen, PDFs öffnen, Bilder anzeigen
-   - Jederzeit über das Portal zugreifen
+# Clean + Build
+npm run rebuild
+```
 
-## 📁 Projektstruktur
+## 🗂️ Projektstruktur
 
 ```
 coachflow/
-├── index.html                  # Landing Page
-├── landing.js                  # Landing Page Logic
-├── dashboard.html              # Coach Dashboard
-├── dashboard.js                # Dashboard Logic
-├── member-portal.html          # Kunden-Portal
-├── member-portal.js            # Portal Logic
-├── styles.css                  # Globale Styles
-├── agb.html                    # AGB
-├── datenschutz.html            # Datenschutzerklärung
-├── impressum.html              # Impressum
-├── netlify.toml                # Netlify Konfiguration
-├── package.json                # NPM Dependencies
-├── .env.example                # Umgebungsvariablen Template
-├── .gitignore                  # Git Ignore
-├── README.md                   # Diese Datei
-├── netlify/
-│   └── functions/
-│       ├── create-coach-checkout.js      # Stripe Checkout für Coaches
-│       ├── stripe-webhook.js              # Stripe Webhook Handler
-│       ├── create-connect-account.js      # Stripe Connect Account erstellen
-│       ├── create-customer-checkout.js    # Stripe Checkout für Kunden
-│       ├── create-tier-price.js           # Tier-Preis in Stripe erstellen
-│       └── upload-content.js              # Content-Upload Metadata
-└── supabase/
-    └── schema.sql              # Datenbank-Schema
-
+├── dist/                    # Build-Output (automatisch generiert)
+│   ├── index.html
+│   ├── app.js              # Mit Credentials injiziert
+│   ├── styles.css
+│   ├── viewer.html
+│   ├── success.html
+│   └── _redirects
+├── index.html              # Haupt-HTML
+├── app.js                  # Haupt-JavaScript (mit Platzhaltern)
+├── styles.css              # Styling
+├── viewer.html             # Content-Viewer für Videos/Dokumente
+├── agb.html               # AGB-Seite
+├── datenschutz.html       # Datenschutzerklärung
+├── impressum.html         # Impressum
+├── cookies.html           # Cookie-Richtlinien
+├── build.js               # Build-Script
+├── package.json           # NPM-Konfiguration
+├── netlify.toml          # Netlify-Konfiguration
+├── .gitignore
+├── .env.example          # Environment Variables Template
+└── README.md             # Diese Datei
 ```
 
-## 🐛 Troubleshooting
+## 🔐 Environment Variables
 
-### Stripe Checkout funktioniert nicht
+### Pflicht-Variablen
 
-**Problem**: Fehler beim Öffnen des Stripe Checkouts
+| Variable | Beschreibung | Beispiel |
+|----------|--------------|----------|
+| `SUPABASE_URL` | Supabase Projekt-URL | `https://abc123.supabase.co` |
+| `SUPABASE_ANON_KEY` | Supabase Public Key | `eyJhbGciOiJIUz...` |
 
-**Lösung**:
-1. Überprüfe, ob `STRIPE_PUBLISHABLE_KEY` korrekt gesetzt ist
-2. Öffne die Browser-Konsole (F12) und suche nach Fehlern
-3. Stelle sicher, dass Stripe.js geladen ist: `<script src="https://js.stripe.com/v3/"></script>`
+### Optionale Variablen
 
-### Supabase Auth funktioniert nicht
+| Variable | Beschreibung | Beispiel |
+|----------|--------------|----------|
+| `STRIPE_PUBLISHABLE_KEY` | Stripe Public Key | `pk_test_51...` |
+| `STRIPE_PRICE_BASIC` | Stripe Price ID für Basis | `price_1Q...` |
+| `STRIPE_PRICE_PREMIUM` | Stripe Price ID für Premium | `price_1Q...` |
+| `STRIPE_PRICE_ELITE` | Stripe Price ID für Elite | `price_1Q...` |
 
-**Problem**: Login/Registrierung schlägt fehl
+## 📊 Supabase Setup
 
-**Lösung**:
-1. Überprüfe `SUPABASE_URL` und `SUPABASE_ANON_KEY`
-2. Stelle sicher, dass die Supabase Auth aktiviert ist (Dashboard > Authentication)
-3. Überprüfe die RLS Policies in der Datenbank
+### Database Schema
 
-### Netlify Functions geben 500-Fehler zurück
+Die folgenden Tabellen müssen in Supabase erstellt werden:
 
-**Problem**: Functions schlagen fehl
+```sql
+-- Subscriptions Tabelle
+CREATE TABLE subscriptions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users NOT NULL,
+  plan TEXT NOT NULL CHECK (plan IN ('basic', 'premium', 'elite')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'cancelled', 'expired')),
+  start_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  end_date TIMESTAMP WITH TIME ZONE,
+  pending_plan TEXT CHECK (pending_plan IN ('basic', 'premium', 'elite')),
+  pending_change_date TIMESTAMP WITH TIME ZONE,
+  stripe_subscription_id TEXT,
+  stripe_customer_id TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
-**Lösung**:
-1. Überprüfe die Netlify Function Logs: Site > Functions > [Function Name] > Logs
-2. Stelle sicher, dass alle Umgebungsvariablen gesetzt sind
-3. Überprüfe, ob `SUPABASE_SERVICE_KEY` (nicht Anon Key!) verwendet wird
+-- Index für schnellere Abfragen
+CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
+CREATE INDEX idx_subscriptions_status ON subscriptions(status);
 
-### Upload schlägt fehl
+-- RLS (Row Level Security) Policies
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 
-**Problem**: Datei-Upload funktioniert nicht
+-- User können nur ihre eigenen Subscriptions sehen
+CREATE POLICY "Users can view own subscriptions"
+  ON subscriptions FOR SELECT
+  USING (auth.uid() = user_id);
 
-**Lösung**:
-1. Überprüfe Supabase Storage Policies
-2. Stelle sicher, dass die Buckets existieren: `videos`, `documents`, `images`
-3. Überprüfe Dateigrößen-Limit (Max. 500MB)
+-- User können ihre eigenen Subscriptions updaten
+CREATE POLICY "Users can update own subscriptions"
+  ON subscriptions FOR UPDATE
+  USING (auth.uid() = user_id);
+```
 
-### Stripe Connect Onboarding funktioniert nicht
+### Storage Buckets
 
-**Problem**: Fehler beim Verbinden des Girokontos
+Erstelle folgende Storage Buckets in Supabase:
 
-**Lösung**:
-1. Stelle sicher, dass Stripe Connect aktiviert ist
-2. Überprüfe die Return URL in `create-connect-account.js`
-3. Verwende Test-Daten für Development: [Stripe Test Data](https://stripe.com/docs/connect/testing)
+- `videos` - Für Trainingsvideos
+- `documents` - Für PDFs und Guides
+- `images` - Für Bilder und Thumbnails
 
-### E-Mails werden nicht versendet
+## 🎨 Customization
 
-**Problem**: Onboarding-E-Mails kommen nicht an
+### Farben ändern
 
-**Lösung**:
-1. Überprüfe `RESEND_API_KEY`
-2. Überprüfe die Netlify Function Logs für Resend-Fehler
-3. Verifiziere deine Domain in Resend (für Produktion)
+Bearbeite `styles.css` und ändere die CSS-Variablen:
 
-### Videos werden nicht abgespielt
+```css
+:root {
+  --primary: #2563eb;      /* Hauptfarbe */
+  --secondary: #8b5cf6;    /* Sekundärfarbe */
+  --success: #10b981;      /* Erfolg */
+  --danger: #ef4444;       /* Fehler */
+}
+```
 
-**Problem**: Video-Player zeigt nichts an
+### Pläne anpassen
 
-**Lösung**:
-1. Überprüfe, ob die Video-URL korrekt ist
-2. Stelle sicher, dass das Video-Format unterstützt wird (MP4, WebM)
-3. Überprüfe Supabase Storage Policies (Public Access für Videos)
+Bearbeite `app.js` und ändere die `planPrices` und `planNames`:
 
-## 📊 Datenbank-Schema
+```javascript
+const planPrices = {
+  basic: 29,
+  premium: 59,
+  elite: 99,
+};
 
-### Tabellen
+const planNames = {
+  basic: "Basis",
+  premium: "Premium",
+  elite: "Elite",
+};
+```
 
-- **coaches**: Coach-Daten (E-Mail, Name, Plan, Stripe-Daten)
-- **tiers**: Membership-Tiers (Name, Preis, Beschreibung)
-- **content**: Hochgeladene Inhalte (Videos, PDFs, Bilder)
-- **customers**: Kunden/Mitglieder (E-Mail, Subscription-Status)
+## 🐛 Debugging
 
-### Row Level Security (RLS)
+### Build-Logs checken
 
-- Coaches können nur ihre eigenen Daten lesen/schreiben
-- Kunden können nur ihre eigenen Subscriptions sehen
-- Tier-Informationen sind öffentlich lesbar
-- Content ist öffentlich lesbar (Access Control erfolgt im Frontend)
+```bash
+# Lokaler Build mit Debug-Output
+node build.js
+```
 
-## 🔐 Sicherheit
+### Netlify Build-Logs
 
-### Best Practices
+1. Gehe zu: Deploys → [Latest Deploy] → Deploy log
+2. Suche nach Fehlern oder Warnungen
+3. Überprüfe, ob Environment Variables gesetzt sind
 
-1. **API Keys**:
-   - Niemals `STRIPE_SECRET_KEY` oder `SUPABASE_SERVICE_KEY` im Frontend verwenden
-   - Verwende immer die Anon Keys im Frontend
-   - Setze alle sensiblen Keys als Netlify Environment Variables
+### Browser Console
 
-2. **RLS Policies**:
-   - Aktiviere Row Level Security auf allen Tabellen
-   - Teste die Policies gründlich
+Öffne die Browser-Konsole (F12) und suche nach:
+- Supabase Initialisierungsfehler
+- Stripe Fehler
+- Network Errors (401, 403, 404)
 
-3. **Stripe Webhooks**:
-   - Validiere Webhook-Signaturen
-   - Verwende `STRIPE_WEBHOOK_SECRET`
+## 📝 To-Do Liste
 
-4. **CORS**:
-   - Konfiguriere CORS in `netlify.toml`
-   - Begrenze auf deine Domain (Produktion)
-
-## 📈 Nächste Schritte
-
-### Features für v2.0
-
-- [ ] Multiple Tiers pro Coach
-- [ ] Live-Streaming Integration
-- [ ] Community/Forum
-- [ ] Analytics Dashboard für Coaches
-- [ ] Affiliate-Programm
-- [ ] Mobile Apps (React Native)
-
-### Optimierungen
-
-- [ ] CDN für Video-Streaming (z.B. Cloudflare Stream)
-- [ ] Image Optimization
-- [ ] PWA Support
-- [ ] SEO Optimization
-- [ ] Performance Monitoring
+- [ ] E-Mail-Vorlagen mit Resend erstellen
+- [ ] Success.html Seite erstellen
+- [ ] Webhook für Stripe Payments einrichten
+- [ ] Automated Testing hinzufügen
+- [ ] Admin-Dashboard erstellen
+- [ ] Analytics (Google Analytics / Plausible) integrieren
 
 ## 🤝 Support
 
-Bei Fragen oder Problemen:
+Bei Problemen:
 
-1. Öffne ein Issue auf GitHub
-2. E-Mail an: support@coachflow.de
-3. Discord-Community: [Link]
+1. **Check die FAQs** in diesem README
+2. **Öffne ein Issue** auf GitHub
+3. **Kontakt**: support@coachflow.de
 
-## 📄 Lizenz
+## 📄 License
 
-MIT License - Siehe LICENSE Datei
+MIT License - siehe [LICENSE](LICENSE) für Details
 
 ## 🙏 Credits
 
-Entwickelt mit:
-- [Stripe](https://stripe.com)
-- [Supabase](https://supabase.com)
-- [Netlify](https://netlify.com)
-- [Resend](https://resend.com)
+- **Supabase** - Backend & Auth
+- **Stripe** - Payment Processing
+- **Netlify** - Hosting
+- **Resend** - Email Service
 
 ---
 
-**CoachFlow** - Deine SaaS-Plattform für Coaches 🚀
+**Entwickelt mit ❤️ für die Fitness-Community**
