@@ -1,5 +1,5 @@
 // ============================================
-// CODE-GLIEDERUNG (Übersicht für schnelle Navigation) update1
+// CODE-GLIEDERUNG (Übersicht für schnelle Navigation)
 // ============================================
 // Suche im Code nach: "// ()>>> GLIEDERUNGSPUNKT X: BEZEICHNUNG"
 //
@@ -21,14 +21,16 @@
 // ============================================
 // >>> GLIEDERUNGSPUNKT 1: KONFIGURATION
 // ============================================
-const SUPABASE_URL = "DEIN_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "DEIN_SUPABASE_ANON_KEY";
-const STRIPE_PUBLISHABLE_KEY = "DEIN_STRIPE_PUBLISHABLE_KEY";
+// These placeholders will be replaced by the build script with actual values
+// from Netlify environment variables during deployment
+const SUPABASE_URL = "__SUPABASE_URL__";
+const SUPABASE_ANON_KEY = "__SUPABASE_ANON_KEY__";
+const STRIPE_PUBLISHABLE_KEY = "__STRIPE_PUBLISHABLE_KEY__";
 
 const STRIPE_PRICES = {
-  basic: "price_BASIC_ID",
-  premium: "price_PREMIUM_ID",
-  elite: "price_ELITE_ID",
+  basic: "__STRIPE_PRICE_BASIC__",
+  premium: "__STRIPE_PRICE_PREMIUM__",
+  elite: "__STRIPE_PRICE_ELITE__",
 };
 
 let stripe = null;

@@ -1,0 +1,159 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Registrierung - CoachFlow</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .register-container {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 2rem;
+        }
+        .register-card {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .register-card h1 {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        .register-card p {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .form-group small {
+            display: block;
+            margin-top: 0.25rem;
+            color: #666;
+            font-size: 0.875rem;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #666;
+        }
+        .login-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="/" class="logo">🏋️ CoachFlow</a>
+            <div class="nav-buttons">
+                <a href="coach-login.html" class="btn btn-secondary">Coach Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="register-container">
+        <div class="register-card">
+            <h1>Als Coach registrieren</h1>
+            <p>Erstelle deine eigene Mitglieder-Plattform in wenigen Minuten</p>
+
+            <div id="messageContainer"></div>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="name">Dein Name *</label>
+                    <input type="text" id="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">E-Mail Adresse *</label>
+                    <input type="email" id="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Passwort *</label>
+                    <input type="password" id="password" required minlength="6">
+                    <small>Mindestens 6 Zeichen</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="businessName">Business Name *</label>
+                    <input type="text" id="businessName" required placeholder="z.B. FitFlex Studio">
+                </div>
+
+                <div class="form-group">
+                    <label for="slug">Dein URL-Slug *</label>
+                    <input type="text" id="slug" required pattern="[a-z0-9-]+" placeholder="z.B. fitflex-studio">
+                    <small>Nur Kleinbuchstaben, Zahlen und Bindestriche. Dies wird Teil deiner URL: ?coach=<strong>dein-slug</strong></small>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Beschreibung (optional)</label>
+                    <textarea id="description" placeholder="Erzähle deinen zukünftigen Mitgliedern etwas über dich..."></textarea>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="acceptTerms" required>
+                        Ich akzeptiere die <a href="agb.html" target="_blank">AGB</a> und <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Jetzt registrieren
+                </button>
+            </form>
+
+            <div class="login-link">
+                Bereits registriert? <a href="coach-login.html">Zum Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="coach-auth.js"></script>
+</body>
+</html>

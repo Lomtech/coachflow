@@ -1,0 +1,315 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Dashboard - CoachFlow</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="coach-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="dashboard-body">
+    <!-- Dashboard Navigation -->
+    <nav class="dashboard-nav">
+        <div class="dashboard-nav-container">
+            <div class="dashboard-logo">
+                <a href="coach-dashboard.html">🏋️ CoachFlow</a>
+                <span class="coach-badge">Coach</span>
+            </div>
+            <div class="dashboard-nav-user">
+                <span id="coachName">Lädt...</span>
+                <button id="logoutBtn" class="btn btn-secondary btn-sm">Abmelden</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="dashboard-sidebar">
+            <ul class="dashboard-menu">
+                <li>
+                    <a href="#" class="dashboard-menu-item active" data-tab="overview">
+                        📊 Übersicht
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="dashboard-menu-item" data-tab="packages">
+                        📦 Pakete
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="dashboard-menu-item" data-tab="content">
+                        📁 Content
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="dashboard-menu-item" data-tab="members">
+                        👥 Mitglieder
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="dashboard-menu-item" data-tab="settings">
+                        ⚙️ Einstellungen
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="dashboard-main">
+            
+            <!-- Overview Tab -->
+            <section id="overview" class="dashboard-section active">
+                <div class="dashboard-header">
+                    <h1>Willkommen, <span id="welcomeName">Coach</span>! 👋</h1>
+                    <p>Hier ist deine Übersicht</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Mitglieder</div>
+                            <div class="stat-value" id="totalMembers">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Aktive Abos</div>
+                            <div class="stat-value" id="activeMembers">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Pakete</div>
+                            <div class="stat-value" id="totalPackages">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Monatlicher Umsatz</div>
+                            <div class="stat-value" id="monthlyRevenue">€0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h2>Schnellaktionen</h2>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="switchTab('packages')">
+                            📦 Neues Paket erstellen
+                        </button>
+                        <button class="btn btn-secondary" onclick="switchTab('content')">
+                            📁 Content hochladen
+                        </button>
+                        <button class="btn btn-secondary" onclick="viewLandingPage()">
+                            🌐 Landing Page ansehen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Package Statistics -->
+                <div class="package-stats-section">
+                    <h2>Paket-Statistiken</h2>
+                    <div id="packageStatsContainer">
+                        <p class="loading">Lädt Statistiken...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Packages Tab -->
+            <section id="packages" class="dashboard-section">
+                <div class="dashboard-header">
+                    <h1>Pakete verwalten</h1>
+                    <button class="btn btn-primary" id="createPackageBtn">+ Neues Paket</button>
+                </div>
+
+                <div id="packagesContainer">
+                    <p class="loading">Lädt Pakete...</p>
+                </div>
+            </section>
+
+            <!-- Content Tab -->
+            <section id="content" class="dashboard-section">
+                <div class="dashboard-header">
+                    <h1>Content verwalten</h1>
+                    <button class="btn btn-primary" id="uploadContentBtn">+ Content hochladen</button>
+                </div>
+
+                <!-- Content Filter -->
+                <div class="content-filter">
+                    <select id="filterPackage" class="form-select">
+                        <option value="">Alle Pakete</option>
+                    </select>
+                    <select id="filterContentType" class="form-select">
+                        <option value="">Alle Typen</option>
+                        <option value="image">Bilder</option>
+                        <option value="document">Dokumente</option>
+                        <option value="video">Videos</option>
+                        <option value="text">Text</option>
+                    </select>
+                </div>
+
+                <div id="contentContainer">
+                    <p class="loading">Lädt Content...</p>
+                </div>
+            </section>
+
+            <!-- Members Tab -->
+            <section id="members" class="dashboard-section">
+                <div class="dashboard-header">
+                    <h1>Mitglieder</h1>
+                </div>
+
+                <div id="membersContainer">
+                    <p class="loading">Lädt Mitglieder...</p>
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section id="settings" class="dashboard-section">
+                <div class="dashboard-header">
+                    <h1>Einstellungen</h1>
+                </div>
+
+                <div class="settings-container">
+                    <div class="settings-card">
+                        <h2>Profil-Informationen</h2>
+                        <form id="profileForm">
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="text" id="profileName" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Business Name</label>
+                                <input type="text" id="profileBusinessName" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Beschreibung</label>
+                                <textarea id="profileDescription" class="form-control" rows="4"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>URL-Slug</label>
+                                <input type="text" id="profileSlug" class="form-control" readonly>
+                                <small>Deine Landing Page: <a href="#" id="landingPageUrl" target="_blank"></a></small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Speichern</button>
+                        </form>
+                    </div>
+
+                    <div class="settings-card">
+                        <h2>Stripe Connect</h2>
+                        <div id="stripeConnectStatus">
+                            <p>Status: <span id="stripeStatus">Nicht verbunden</span></p>
+                            <button class="btn btn-primary" id="connectStripeBtn">Mit Stripe verbinden</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Create/Edit Package Modal -->
+    <div id="packageModal" class="modal">
+        <div class="modal-content modal-large">
+            <span class="close">&times;</span>
+            <h2 id="packageModalTitle">Neues Paket erstellen</h2>
+            <form id="packageForm">
+                <input type="hidden" id="packageId">
+                <div class="form-group">
+                    <label>Paket-Name *</label>
+                    <input type="text" id="packageName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Beschreibung</label>
+                    <textarea id="packageDescription" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Preis (€) *</label>
+                        <input type="number" id="packagePrice" class="form-control" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Abrechnungsintervall</label>
+                        <select id="packageInterval" class="form-control">
+                            <option value="month">Monatlich</option>
+                            <option value="year">Jährlich</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Features (eines pro Zeile)</label>
+                    <textarea id="packageFeatures" class="form-control" rows="5" placeholder="Feature 1&#10;Feature 2&#10;Feature 3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('packageModal')">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Content Modal -->
+    <div id="contentModal" class="modal">
+        <div class="modal-content modal-large">
+            <span class="close">&times;</span>
+            <h2>Content hochladen</h2>
+            <form id="contentForm">
+                <div class="form-group">
+                    <label>Paket auswählen *</label>
+                    <select id="contentPackage" class="form-control" required>
+                        <option value="">Bitte wählen...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Content-Typ *</label>
+                    <select id="contentType" class="form-control" required>
+                        <option value="">Bitte wählen...</option>
+                        <option value="image">Bild</option>
+                        <option value="document">Dokument</option>
+                        <option value="text">Text</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Titel *</label>
+                    <input type="text" id="contentTitle" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Beschreibung</label>
+                    <textarea id="contentDescription" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group" id="fileUploadGroup">
+                    <label>Datei hochladen *</label>
+                    <input type="file" id="contentFile" class="form-control" accept="image/*,.pdf,.doc,.docx">
+                    <small>Max. 10 MB</small>
+                </div>
+                <div class="form-group" id="textContentGroup" style="display: none;">
+                    <label>Text-Inhalt</label>
+                    <textarea id="contentText" class="form-control" rows="10"></textarea>
+                </div>
+                <div id="uploadProgress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <span id="progressText">0%</span>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('contentModal')">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary" id="uploadBtn">Hochladen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="coach-auth.js"></script>
+    <script src="coach-dashboard.js"></script>
+</body>
+</html>
