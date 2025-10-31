@@ -1,4 +1,4 @@
-# Local Netlify folder
+# Local Netlify folder Important: do not remove
 .netlify
 .env
 .env.example
