@@ -1,33 +1,31 @@
-
 {
-  "name": "coachflow",
-  "version": "1.0.0",
-  "description": "SaaS-Plattform für Fitness- und Yoga-Coaches mit Membership-Websites",
-  "main": "index.html",
+  "name": "fitticoach-dsgvo",
+  "version": "2.0.0",
+  "description": "DSGVO-konforme Personal Training Website mit Supabase & Stripe",
+  "main": "build.js",
   "scripts": {
-    "dev": "netlify dev",
-    "build": "node scripts/build.js",
-    "deploy": "netlify deploy --prod"
+    "build": "node build.js",
+    "dev": "npx serve .",
+    "serve:dist": "npx serve dist",
+    "clean": "rm -rf dist",
+    "rebuild": "npm run clean && npm run build"
   },
   "keywords": [
-    "saas",
-    "coaching",
+    "fitness",
+    "training",
     "membership",
-    "stripe",
+    "dsgvo",
     "supabase",
-    "netlify"
+    "stripe"
   ],
-  "author": "CoachFlow",
+  "author": "FittiCoach",
   "license": "MIT",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.39.0",
-    "resend": "^3.0.0",
-    "stripe": "^14.10.0"
-  },
-  "devDependencies": {
-    "netlify-cli": "^17.10.0"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/fitticoach.git"
   },
   "engines": {
-    "node": ">=18.0.0"
-  }
+    "node": ">=14.0.0"
+  },
+  "devDependencies": {}
 }
