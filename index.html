@@ -2,384 +2,338 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Membership Platform</title>
-    <link rel="stylesheet" href="styles.css?v=4" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta
+      name="description"
+      content="Premium Fitness Training mit exklusiven Inhalten - Upgrade und Downgrade jederzeit möglich"
+    />
+    <!-- Cache-Control für Development -->
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>FittiCoach - Premium Fitness Training</title>
+    <link rel="stylesheet" href="styles.css" />
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
   </head>
   <body>
-    <!-- Cookie Consent Banner -->
-    <div id="cookie-consent" class="cookie-consent" style="display: none">
+    <!-- Cookie Consent Banner 2 -->
+    <div id="cookieConsent" class="cookie-banner" style="display: none">
       <div class="cookie-content">
-        <p>🍪 Wir verwenden Cookies, um Ihre Erfahrung zu verbessern.</p>
+        <div class="cookie-text">
+          <h3>🍪 Cookie-Einstellungen</h3>
+          <p>
+            Wir verwenden Cookies, um dir die bestmögliche Erfahrung zu bieten.
+            Essentielle Cookies sind für die Funktion der Website notwendig.
+            Weitere Informationen findest du in unserer
+            <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a>
+            und <a href="cookies.html" target="_blank">Cookie-Richtlinie</a>.
+          </p>
+        </div>
         <div class="cookie-buttons">
-          <button id="accept-cookies" class="btn btn-primary">
-            Akzeptieren
+          <button id="acceptAll" class="btn btn-primary">
+            Alle akzeptieren
           </button>
-          <button id="decline-cookies" class="btn btn-secondary">
-            Ablehnen
+          <button id="acceptEssential" class="btn btn-secondary">
+            Nur Notwendige
           </button>
         </div>
       </div>
     </div>
 
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav>
       <div class="container">
-        <div class="nav-brand">
-          <h1>🚀 MemberHub</h1>
-        </div>
-        <div class="nav-menu">
-          <a href="#home" class="nav-link active">Home</a>
-          <a href="#pricing" class="nav-link">Preise</a>
-          <a href="#features" class="nav-link">Features</a>
-          <button id="auth-btn" class="btn btn-primary">Login</button>
+        <a href="/" class="logo">🏋️ FittiCoach</a>
+        <div class="nav-buttons">
+          <button id="loginBtn" class="btn btn-primary">Anmelden</button>
+          <button
+            id="logoutBtn"
+            class="btn btn-secondary"
+            style="display: none"
+          >
+            Abmelden
+          </button>
         </div>
       </div>
     </nav>
 
     <!-- Hero Section -->
-    <section id="home" class="hero">
+    <section class="hero">
       <div class="container">
-        <div class="hero-content">
-          <h1 class="hero-title">Willkommen bei MemberHub</h1>
-          <p class="hero-subtitle">Die beste Plattform für exklusive Inhalte</p>
-          <button
-            class="btn btn-large btn-primary"
-            onclick="scrollToSection('pricing')"
-          >
-            Jetzt starten
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="features">
-      <div class="container">
-        <h2 class="section-title">Unsere Features</h2>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">🎥</div>
-            <h3>Video Content</h3>
-            <p>Exklusive Videos für Mitglieder</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">📚</div>
-            <h3>Dokumente</h3>
-            <p>Zugriff auf wichtige Dokumente</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">🖼️</div>
-            <h3>Bilder</h3>
-            <p>Hochwertige Bildergalerien</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">🔒</div>
-            <h3>Sicher</h3>
-            <p>Ihre Daten sind geschützt</p>
-          </div>
-        </div>
+        <h1>Werde die beste Version von dir</h1>
+        <p>
+          Professionelle Trainingspläne, Ernährungsguides und exklusive Videos
+          von zertifizierten Coaches. Upgrade oder Downgrade jederzeit möglich!
+        </p>
+        <button
+          id="ctaBtn"
+          class="btn btn-primary"
+          style="font-size: 1.1rem; padding: 1rem 2rem"
+        >
+          Jetzt starten
+        </button>
       </div>
     </section>
 
     <!-- Pricing Section -->
-    <section id="pricing" class="pricing">
+    <section id="pricing">
       <div class="container">
-        <h2 class="section-title">Wähle dein Paket</h2>
-        <div class="pricing-grid">
+        <h2 class="text-center">Wähle deinen Plan</h2>
+        <p class="text-center" style="color: #999; margin-bottom: 3rem">
+          Alle Pläne mit 30 Tage Geld-zurück-Garantie • Jederzeit upgraden oder
+          downgraden
+        </p>
+
+        <div class="pricing-cards">
           <!-- Basic Plan -->
           <div class="pricing-card">
-            <div class="pricing-header">
-              <h3>📦 Basic</h3>
-              <div class="price">
-                <span class="amount">9,99€</span>
-                <span class="period">/Monat</span>
-              </div>
-            </div>
-            <ul class="pricing-features">
-              <li>✅ Basis-Inhalte</li>
-              <li>✅ Community-Zugang</li>
-              <li>✅ Email-Support</li>
-              <li>❌ Premium-Videos</li>
-              <li>❌ Exklusive Dokumente</li>
+            <h3>Basis</h3>
+            <div class="price">€29<span>/Monat</span></div>
+            <ul class="features">
+              <li>Grundlegende Trainingspläne</li>
+              <li>Basis Übungsvideos</li>
+              <li>Community-Zugang</li>
+              <li>E-Mail Support</li>
             </ul>
-            <button
-              class="btn btn-primary subscribe-btn"
-              data-plan="basic"
-              data-price="9.99"
-            >
-              Jetzt abonnieren
+            <button class="subscribe-btn" data-plan="basic">
+              Basis wählen
             </button>
           </div>
 
-          <!-- Pro Plan -->
+          <!-- Premium Plan -->
           <div class="pricing-card featured">
-            <div class="badge">⭐ Beliebt</div>
-            <div class="pricing-header">
-              <h3>⭐ Pro</h3>
-              <div class="price">
-                <span class="amount">19,99€</span>
-                <span class="period">/Monat</span>
-              </div>
-            </div>
-            <ul class="pricing-features">
-              <li>✅ Alle Basic-Features</li>
-              <li>✅ Premium-Videos</li>
-              <li>✅ Erweiterte Dokumente</li>
-              <li>✅ Priority-Support</li>
-              <li>❌ Elite-Inhalte</li>
+            <div class="featured-badge">⭐ BELIEBT</div>
+            <h3>Premium</h3>
+            <div class="price">€59<span>/Monat</span></div>
+            <ul class="features">
+              <li>Alle Basis-Features</li>
+              <li>Erweiterte Trainingspläne</li>
+              <li>Premium Videos & Tutorials</li>
+              <li>Ernährungsguides</li>
+              <li>Vorrang-Support</li>
             </ul>
-            <button
-              class="btn btn-primary subscribe-btn"
-              data-plan="pro"
-              data-price="19.99"
-            >
-              Jetzt abonnieren
+            <button class="subscribe-btn" data-plan="premium">
+              Premium wählen
             </button>
           </div>
 
           <!-- Elite Plan -->
           <div class="pricing-card">
-            <div class="pricing-header">
-              <h3>👑 Elite</h3>
-              <div class="price">
-                <span class="amount">49,99€</span>
-                <span class="period">/Monat</span>
-              </div>
-            </div>
-            <ul class="pricing-features">
-              <li>✅ Alle Pro-Features</li>
-              <li>✅ Elite-Inhalte</li>
-              <li>✅ 1-on-1 Coaching</li>
-              <li>✅ VIP-Support</li>
-              <li>✅ Früher Zugang</li>
+            <h3>Elite</h3>
+            <div class="price">€99<span>/Monat</span></div>
+            <ul class="features">
+              <li>Alle Premium-Features</li>
+              <li>Persönliche Trainingspläne</li>
+              <li>1:1 Video-Coaching</li>
+              <li>Individuelle Ernährungspläne</li>
+              <li>24/7 Premium Support</li>
+              <li>Exklusive Community</li>
             </ul>
-            <button
-              class="btn btn-primary subscribe-btn"
-              data-plan="elite"
-              data-price="49.99"
-            >
-              Jetzt abonnieren
+            <button class="subscribe-btn" data-plan="elite">
+              Elite wählen
             </button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Members Area (Hidden by default) -->
-    <section id="members-area" class="members-area" style="display: none">
+    <!-- Members Area -->
+    <section id="membersArea" style="display: none">
       <div class="container">
-        <div class="members-header">
-          <h2>👋 Willkommen, <span id="user-name">Mitglied</span>!</h2>
-          <div class="members-info">
-            <span class="plan-badge" id="current-plan-badge">Basic</span>
-            <button id="logout-btn" class="btn btn-secondary">Logout</button>
-          </div>
+        <!-- User Info -->
+        <div class="user-info" id="userInfo">
+          <!-- Wird von JavaScript gefüllt -->
         </div>
 
-        <!-- Tabs Navigation -->
+        <!-- Content Tabs -->
         <div class="tabs">
-          <button class="tab-btn active" data-tab="dashboard">
-            📊 Dashboard
-          </button>
-          <button class="tab-btn" data-tab="upload">⬆️ Upload</button>
-          <button class="tab-btn" data-tab="subscription">
-            💳 Abo verwalten
-          </button>
+          <button class="tab-btn active" data-tab="videos">📹 Videos</button>
+          <button class="tab-btn" data-tab="documents">📄 Dokumente</button>
+          <button class="tab-btn" data-tab="images">🖼️ Bilder</button>
         </div>
 
-        <!-- Dashboard Tab -->
-        <div id="dashboard-section" class="content-section">
-          <h3>Dein Dashboard</h3>
-          <div class="dashboard-stats">
-            <div class="stat-card">
-              <div class="stat-icon">📊</div>
-              <div class="stat-info">
-                <h4>Dein Plan</h4>
-                <p id="dashboard-plan">Basic</p>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon">📅</div>
-              <div class="stat-info">
-                <h4>Mitglied seit</h4>
-                <p id="member-since">-</p>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon">📁</div>
-              <div class="stat-info">
-                <h4>Verfügbare Inhalte</h4>
-                <p id="content-count">-</p>
-              </div>
-            </div>
+        <!-- Videos Tab -->
+        <div id="videos" class="tab-content active">
+          <div class="content-grid" id="videoList">
+            <!-- Wird von JavaScript gefüllt -->
           </div>
         </div>
 
-        <!-- Upload Tab -->
-        <div id="upload-section" class="content-section" style="display: none">
-          <h2>📤 Inhalte hochladen</h2>
-
-          <form id="upload-form" class="upload-form">
-            <div class="form-group">
-              <label for="upload-type">Dateityp:</label>
-              <select id="upload-type" required>
-                <option value="video">🎥 Video</option>
-                <option value="image">🖼️ Bild</option>
-                <option value="document">📄 Dokument</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="upload-plan">Verfügbar für Paket:</label>
-              <select id="upload-plan" required>
-                <option value="basic">📦 Basic (alle sehen es)</option>
-                <option value="pro">⭐ Pro (Pro + Elite sehen es)</option>
-                <option value="elite">👑 Elite (nur Elite sieht es)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="upload-title">Titel:</label>
-              <input type="text" id="upload-title" required maxlength="100" />
-            </div>
-
-            <div class="form-group">
-              <label for="upload-description">Beschreibung:</label>
-              <textarea
-                id="upload-description"
-                rows="3"
-                maxlength="500"
-              ></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="upload-file">Datei auswählen:</label>
-              <input type="file" id="upload-file" required />
-            </div>
-
-            <div
-              class="upload-progress"
-              id="upload-progress"
-              style="display: none"
-            >
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill"></div>
-              </div>
-              <span id="progress-text">0%</span>
-            </div>
-
-            <button type="submit" class="btn btn-primary">
-              <span class="btn-icon">⬆️</span> Hochladen
-            </button>
-          </form>
-
-          <hr style="margin: 2rem 0" />
-
-          <h3>📚 Verfügbare Inhalte</h3>
-
-          <div class="filter-tabs">
-            <button class="filter-tab active" data-filter="all">Alle</button>
-            <button class="filter-tab" data-filter="video">Videos</button>
-            <button class="filter-tab" data-filter="image">Bilder</button>
-            <button class="filter-tab" data-filter="document">Dokumente</button>
-          </div>
-
-          <div id="uploads-list" class="uploads-grid">
-            <p class="loading">Lade Inhalte...</p>
+        <!-- Documents Tab -->
+        <div id="documents" class="tab-content">
+          <div class="content-grid" id="documentList">
+            <!-- Wird von JavaScript gefüllt -->
           </div>
         </div>
 
-        <!-- Subscription Tab -->
-        <div
-          id="subscription-section"
-          class="content-section"
-          style="display: none"
-        >
-          <h3>💳 Dein Abonnement verwalten</h3>
-          <div class="subscription-info">
-            <div class="info-card">
-              <h4>Aktueller Plan</h4>
-              <p class="plan-name" id="sub-plan-name">Basic</p>
-              <p class="plan-price" id="sub-plan-price">9,99€/Monat</p>
-            </div>
-            <div class="info-card">
-              <h4>Status</h4>
-              <p class="status-badge" id="sub-status">Aktiv</p>
-            </div>
-          </div>
-
-          <div class="subscription-actions">
-            <h4>Plan ändern</h4>
-            <div class="plan-change-buttons">
-              <button class="btn btn-outline change-plan-btn" data-plan="basic">
-                📦 Zu Basic wechseln
-              </button>
-              <button class="btn btn-outline change-plan-btn" data-plan="pro">
-                ⭐ Zu Pro upgraden
-              </button>
-              <button class="btn btn-outline change-plan-btn" data-plan="elite">
-                👑 Zu Elite upgraden
-              </button>
-            </div>
-            <button
-              id="cancel-subscription-btn"
-              class="btn btn-danger"
-              style="margin-top: 2rem"
-            >
-              Abo kündigen
-            </button>
+        <!-- Images Tab -->
+        <div id="images" class="tab-content">
+          <div class="content-grid" id="imageList">
+            <!-- Wird von JavaScript gefüllt -->
           </div>
         </div>
       </div>
     </section>
-
-    <!-- Auth Modal -->
-    <div id="auth-modal" class="modal" style="display: none">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2 id="modal-title">Login</h2>
-
-        <div class="auth-tabs">
-          <button class="auth-tab active" data-auth="login">Login</button>
-          <button class="auth-tab" data-auth="register">Registrieren</button>
-        </div>
-
-        <form id="auth-form">
-          <div class="form-group">
-            <label for="auth-email">Email:</label>
-            <input type="email" id="auth-email" required />
-          </div>
-          <div class="form-group">
-            <label for="auth-password">Passwort:</label>
-            <input type="password" id="auth-password" required />
-          </div>
-          <button
-            type="submit"
-            class="btn btn-primary btn-block"
-            id="auth-submit-btn"
-          >
-            Login
-          </button>
-        </form>
-
-        <p class="auth-footer">
-          <a href="#" id="forgot-password">Passwort vergessen?</a>
-        </p>
-      </div>
-    </div>
-
-    <!-- Notification -->
-    <div id="notification" class="notification" style="display: none"></div>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer>
       <div class="container">
-        <p>&copy; 2024 MemberHub. Alle Rechte vorbehalten.</p>
+        <div class="footer-content">
+          <div class="footer-section">
+            <h4>FittiCoach</h4>
+            <p>Premium Fitness Training für deine Ziele</p>
+            <p style="margin-top: 10px; font-size: 14px">
+              ✅ Jederzeit upgraden<br />
+              ✅ Jederzeit downgraden<br />
+              ✅ Faire Preise
+            </p>
+          </div>
+          <div class="footer-section">
+            <h4>Rechtliches</h4>
+            <ul class="footer-links">
+              <li><a href="impressum.html">Impressum</a></li>
+              <li><a href="datenschutz.html">Datenschutz</a></li>
+              <li><a href="cookies.html">Cookie-Richtlinie</a></li>
+              <li><a href="agb.html">AGB</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Support</h4>
+            <ul class="footer-links">
+              <li>
+                <a href="mailto:support@fitticoach.de">support@fitticoach.de</a>
+              </li>
+              <li>
+                <a href="#" id="openCookieSettings">Cookie-Einstellungen</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2025 FittiCoach. Alle Rechte vorbehalten.</p>
+        </div>
       </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=4"></script>
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Anmelden</h2>
+        <form id="loginForm">
+          <div class="form-group">
+            <label>E-Mail</label>
+            <input type="email" id="loginEmail" required />
+          </div>
+          <div class="form-group">
+            <label>Passwort</label>
+            <input type="password" id="loginPassword" required />
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%">
+            Anmelden
+          </button>
+          <div class="form-link">
+            Noch kein Konto?
+            <a href="#" id="showRegister">Jetzt registrieren</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Registrieren</h2>
+        <form id="registerForm">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="registerName" required />
+          </div>
+          <div class="form-group">
+            <label>E-Mail</label>
+            <input type="email" id="registerEmail" required />
+          </div>
+          <div class="form-group">
+            <label>Passwort (min. 6 Zeichen)</label>
+            <input
+              type="password"
+              id="registerPassword"
+              required
+              minlength="6"
+            />
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" id="acceptPrivacy" required />
+              Ich akzeptiere die
+              <a href="datenschutz.html" target="_blank"
+                >Datenschutzerklärung</a
+              >
+              und <a href="agb.html" target="_blank">AGB</a>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%">
+            Registrieren
+          </button>
+          <div class="form-link">
+            Bereits registriert? <a href="#" id="showLogin">Jetzt anmelden</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Zahlung</h2>
+        <div id="paymentInfo">
+          <!-- Wird von JavaScript gefüllt -->
+        </div>
+        <form id="paymentForm">
+          <p style="color: #999; text-align: center; margin: 2rem 0">
+            Du wirst zu Stripe weitergeleitet, um die Zahlung sicher
+            abzuschließen.
+          </p>
+          <button type="submit" class="btn btn-primary" style="width: 100%">
+            Zur Zahlung
+          </button>
+          <p
+            style="
+              font-size: 13px;
+              color: #999;
+              text-align: center;
+              margin-top: 1rem;
+            "
+          >
+            Mit dem Abschluss akzeptierst du unsere
+            <a href="agb.html" target="_blank">AGB</a> und
+            <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a>.
+            <br />
+            <strong>Du kannst jederzeit upgraden oder downgraden.</strong>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- App Script -->
+    <script src="app.js"></script>
   </body>
 </html>
