@@ -1,1624 +1,828 @@
 // ============================================
-// CODE-GLIEDERUNG (Übersicht für schnelle Navigation)
-// ============================================
-// Suche im Code nach: "// ()>>> GLIEDERUNGSPUNKT X: BEZEICHNUNG"
-//
-// 1. KONFIGURATION (Supabase & Stripe)
-// 2. GLOBALE VARIABLEN & HILFSFUNKTIONEN
-// 3. COOKIE-CONSENT & DSGVO
-// 4. DEMO-INHALTE & PLAN-HIERARCHIE
-// 5. INITIALISIERUNG (DOMContentLoaded)
-// 6. AUTHENTIFIZIERUNG (Session & Subscription laden)
-// 7. EVENT LISTENERS (Navigation, Modals, Forms, Tabs, Cookie)
-// 8. LOGIN & REGISTRATION (handleLogin, handleRegister, logout)
-// 9. SUBSCRIPTION & PAYMENT (Klicken, Modal, Stripe/Demo-Zahlung)
-// 10. UP- & DOWNGRADE MANAGEMENT (NEU)
-// 11. UI-UPDATES (angemeldet/abgemeldet, User-Info)
-// 12. CONTENT MANAGEMENT (Laden, Zugriffsprüfung, Item-Erstellung, Tab-Wechsel)
-// 13. UTILITY FUNCTIONS (Modal, Alert)
+// KONFIGURATION
 // ============================================
 
-// ============================================
-// >>> GLIEDERUNGSPUNKT 1: KONFIGURATION
-// ============================================
-const SUPABASE_URL = "DEIN_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "DEIN_SUPABASE_ANON_KEY";
-const STRIPE_PUBLISHABLE_KEY = "DEIN_STRIPE_PUBLISHABLE_KEY";
+// Supabase Konfiguration
+const SUPABASE_URL = "DEINE_SUPABASE_URL"; // Ersetze mit deiner URL
+const SUPABASE_ANON_KEY = "DEIN_SUPABASE_ANON_KEY"; // Ersetze mit deinem Key
 
-const STRIPE_PRICES = {
-  basic: "price_BASIC_ID",
-  premium: "price_PREMIUM_ID",
-  elite: "price_ELITE_ID",
-};
+// Stripe Konfiguration (für Demo)
+const STRIPE_PUBLISHABLE_KEY = "DEIN_STRIPE_KEY"; // Optional
 
-let stripe = null;
-const DEBUG = true;
-
-function debugLog(...args) {
-  if (DEBUG) {
-    console.log("[DEBUG]", ...args);
-  }
-}
-
+// Supabase Client initialisieren
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-debugLog("Supabase initialisiert:", {
-  url: SUPABASE_URL,
-  keyPrefix: SUPABASE_ANON_KEY.substring(0, 20) + "...",
-});
 
 // ============================================
-// >>> GLIEDERUNGSPUNKT 2: GLOBALE VARIABLEN & HILFSFUNKTIONEN
+// GLOBALE VARIABLEN
 // ============================================
 let currentUser = null;
-let userSubscription = null;
+let currentSubscription = null;
 
 // ============================================
-// >>> GLIEDERUNGSPUNKT 3: COOKIE-CONSENT & DSGVO
+// COOKIE CONSENT
 // ============================================
-const CookieConsent = {
-  CONSENT_COOKIE: "fitticoach_cookie_consent",
-  CONSENT_EXPIRY_DAYS: 365,
-  hasConsent() {
-    return localStorage.getItem(this.CONSENT_COOKIE) !== null;
-  },
-  getConsent() {
-    const consent = localStorage.getItem(this.CONSENT_COOKIE);
-    return consent ? JSON.parse(consent) : null;
-  },
-  setConsent(analytics = false, marketing = false) {
-    const consent = {
-      essential: true,
-      analytics: analytics,
-      marketing: marketing,
-      timestamp: new Date().toISOString(),
-    };
-    localStorage.setItem(this.CONSENT_COOKIE, JSON.stringify(consent));
-    debugLog("Cookie-Zustimmung gespeichert:", consent);
-  },
-  showBanner() {
-    const banner = document.getElementById("cookieConsent");
-    if (banner) {
-      banner.style.display = "block";
-      setTimeout(() => {
-        banner.classList.add("show");
-      }, 100);
-    }
-  },
-  hideBanner() {
-    const banner = document.getElementById("cookieConsent");
-    if (banner) {
-      banner.classList.remove("show");
-      setTimeout(() => {
-        banner.style.display = "none";
-      }, 300);
-    }
-  },
-  canUseAnalytics() {
-    const consent = this.getConsent();
-    return consent && consent.analytics;
-  },
-  canUseMarketing() {
-    const consent = this.getConsent();
-    return consent && consent.marketing;
-  },
-  init() {
-    if (!this.hasConsent()) {
-      this.showBanner();
-    } else {
-      debugLog("Cookie-Zustimmung bereits vorhanden");
-      if (this.canUseAnalytics()) {
-        this.loadAnalytics();
-      }
-    }
-  },
-  loadAnalytics() {
-    debugLog("Analytics wird geladen (Zustimmung vorhanden)");
-  },
-};
-
-// ============================================
-// >>> GLIEDERUNGSPUNKT 4: DEMO-INHALTE & PLAN-HIERARCHIE
-// ============================================
-const demoContent = {
-  videos: [
-    {
-      id: 1,
-      title: "Ganzkörper-Workout",
-      description: "Komplettes 30-Minuten Training",
-      url: "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/videos/basic/WhatsApp%20Video%202025-10-30%20at%2002.38.17.mp4",
-      thumbnail:
-        "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      requiredPlan: "basic",
-    },
-    {
-      id: 2,
-      title: "Core-Strengthening",
-      description: "Intensives Bauchmuskeltraining",
-      url: "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/videos/basic/WhatsApp%20Video%202025-10-30%20at%2002.38.17.mp4",
-      thumbnail:
-        "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      requiredPlan: "basic",
-    },
-    {
-      id: 3,
-      title: "HIIT Advanced",
-      description: "Hochintensives Intervalltraining",
-      url: "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/videos/basic/WhatsApp%20Video%202025-10-30%20at%2002.38.17.mp4",
-      thumbnail:
-        "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      requiredPlan: "premium",
-    },
-    {
-      id: 4,
-      title: "Yoga & Mobility",
-      description: "Flexibilität und Entspannung",
-      url: "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/videos/basic/WhatsApp%20Video%202025-10-30%20at%2002.38.17.mp4",
-      thumbnail:
-        "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      requiredPlan: "premium",
-    },
-    {
-      id: 5,
-      title: "Personal Training Session",
-      description: "Exklusive 1:1 Trainingseinheit",
-      url: "https://example.com/video5.mp4",
-      thumbnail:
-        "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      requiredPlan: "elite",
-    },
-  ],
-  documents: [
-    {
-      id: 1,
-      title: "12-Wochen Trainingsplan",
-      description: "Strukturierter Aufbauplan",
-      url: "https://example.com/doc1.pdf",
-      thumbnail:
-        "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      requiredPlan: "basic",
-    },
-    {
-      id: 2,
-      title: "Ernährungsguide Premium",
-      description: "Detaillierter Meal-Plan mit Rezepten",
-      url: "https://example.com/doc2.pdf",
-      thumbnail:
-        "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      requiredPlan: "premium",
-    },
-    {
-      id: 3,
-      title: "Supplement Guide",
-      description: "Alles über Nahrungsergänzung",
-      url: "https://example.com/doc3.pdf",
-      thumbnail:
-        "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      requiredPlan: "premium",
-    },
-    {
-      id: 4,
-      title: "Persönlicher Trainingsplan",
-      description: "Individuell auf dich zugeschnitten",
-      url: "https://example.com/doc4.pdf",
-      thumbnail:
-        "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      requiredPlan: "elite",
-    },
-  ],
-  images: [
-    {
-      id: 1,
-      title: "Übungskatalog Basics",
-      description: "Alle grundlegenden Übungen",
-      url: "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      thumbnail:
-        "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      requiredPlan: "basic",
-    },
-    {
-      id: 2,
-      title: "Anatomy Guide",
-      description: "Muskelgruppen verstehen",
-      url: "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      thumbnail:
-        "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      requiredPlan: "premium",
-    },
-    {
-      id: 3,
-      title: "Advanced Techniques",
-      description: "Fortgeschrittene Trainingsmethoden",
-      url: "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      thumbnail:
-        "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png",
-      requiredPlan: "elite",
-    },
-  ],
-};
-
-const planHierarchy = {
-  basic: 1,
-  premium: 2,
-  elite: 3,
-};
-
-const planPrices = {
-  basic: 29,
-  premium: 59,
-  elite: 99,
-};
-
-const planNames = {
-  basic: "Basis",
-  premium: "Premium",
-  elite: "Elite",
-};
-
-// ============================================
-// >>> GLIEDERUNGSPUNKT 5: INITIALISIERUNG
-// ============================================
-document.addEventListener("DOMContentLoaded", async () => {
-  CookieConsent.init();
-  debugLog("STRIPE_PUBLISHABLE_KEY:", STRIPE_PUBLISHABLE_KEY);
-  if (CookieConsent.hasConsent()) {
-    if (STRIPE_PUBLISHABLE_KEY !== "DEIN_STRIPE_PUBLISHABLE_KEY") {
-      debugLog("Stripe Key ist gesetzt, versuche zu initialisieren...");
-      if (typeof Stripe === "undefined") {
-        console.error("Stripe.js Bibliothek nicht geladen!");
-        showAlert(
-          "Stripe.js konnte nicht geladen werden. Bitte Seite neu laden.",
-          "error"
-        );
-      } else {
-        try {
-          stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-          debugLog("Stripe erfolgreich initialisiert");
-          console.log("Stripe ist bereit für Zahlungen!");
-        } catch (error) {
-          console.error("Stripe Initialisierungsfehler:", error);
-          showAlert(
-            "Stripe konnte nicht geladen werden. Zahlungen sind deaktiviert.",
-            "error"
-          );
-        }
-      }
-    } else {
-      console.warn(
-        "Stripe Publishable Key nicht konfiguriert - Demo-Modus aktiv"
-      );
-    }
-  } else {
-    console.log("Stripe-Initialisierung wartet auf Cookie-Zustimmung");
+function initCookieConsent() {
+  const consent = localStorage.getItem("cookieConsent");
+  if (!consent) {
+    document.getElementById("cookie-consent").style.display = "block";
   }
-  await checkUserSession();
-  initializeEventListeners();
-});
 
-// ============================================
-// >>> GLIEDERUNGSPUNKT 6: AUTHENTIFIZIERUNG
-// ============================================
-async function checkUserSession() {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (session) {
-    currentUser = session.user;
-    await loadUserSubscription();
-    updateUIForLoggedInUser();
-  } else {
-    updateUIForLoggedOutUser();
-  }
-}
-
-async function loadUserSubscription() {
-  const { data, error } = await supabase
-    .from("subscriptions")
-    .select("*")
-    .eq("user_id", currentUser.id)
-    .eq("status", "active")
-    .single();
-  if (data) {
-    userSubscription = data;
-  }
-}
-
-// ============================================
-// >>> GLIEDERUNGSPUNKT 7: EVENT LISTENERS
-// ============================================
-function initializeEventListeners() {
-  const loginBtn = document.getElementById("loginBtn");
-  if (loginBtn) {
-    loginBtn.addEventListener("click", () => {
-      showModal("loginModal");
-    });
-  }
-  const logoutBtn = document.getElementById("logoutBtn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", logout);
-  }
-  const ctaBtn = document.getElementById("ctaBtn");
-  if (ctaBtn) {
-    ctaBtn.addEventListener("click", () => {
-      document.getElementById("pricing").scrollIntoView({ behavior: "smooth" });
-    });
-  }
-  document.querySelectorAll(".close").forEach((closeBtn) => {
-    closeBtn.addEventListener("click", function () {
-      this.closest(".modal").style.display = "none";
-    });
+  document.getElementById("accept-cookies").addEventListener("click", () => {
+    localStorage.setItem("cookieConsent", "accepted");
+    document.getElementById("cookie-consent").style.display = "none";
+    showNotification("✅ Cookies akzeptiert", "success");
   });
+
+  document.getElementById("decline-cookies").addEventListener("click", () => {
+    localStorage.setItem("cookieConsent", "declined");
+    document.getElementById("cookie-consent").style.display = "none";
+    showNotification("❌ Cookies abgelehnt", "warning");
+  });
+}
+
+// ============================================
+// AUTHENTIFIZIERUNG
+// ============================================
+
+// Auth Modal öffnen/schließen
+function initAuthModal() {
+  const modal = document.getElementById("auth-modal");
+  const authBtn = document.getElementById("auth-btn");
+  const closeBtn = document.querySelector(".close");
+
+  authBtn.addEventListener("click", () => {
+    modal.style.display = "flex";
+  });
+
+  closeBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
   window.addEventListener("click", (e) => {
-    if (e.target.classList.contains("modal")) {
-      e.target.style.display = "none";
+    if (e.target === modal) {
+      modal.style.display = "none";
     }
   });
-  const loginForm = document.getElementById("loginForm");
-  if (loginForm) {
-    loginForm.addEventListener("submit", handleLogin);
-  }
-  const registerForm = document.getElementById("registerForm");
-  if (registerForm) {
-    registerForm.addEventListener("submit", handleRegister);
-  }
-  const paymentForm = document.getElementById("paymentForm");
-  if (paymentForm) {
-    paymentForm.addEventListener("submit", handlePayment);
-  }
-  const showRegisterLink = document.getElementById("showRegister");
-  if (showRegisterLink) {
-    showRegisterLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      hideModal("loginModal");
-      showModal("registerModal");
-    });
-  }
-  const showLoginLink = document.getElementById("showLogin");
-  if (showLoginLink) {
-    showLoginLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      hideModal("registerModal");
-      showModal("loginModal");
-    });
-  }
-  document.querySelectorAll(".subscribe-btn").forEach((btn) => {
-    btn.addEventListener("click", handleSubscriptionClick);
-  });
-  document.querySelectorAll(".tab-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const tabName = btn.getAttribute("data-tab");
-      switchTab(tabName);
-    });
-  });
-  const acceptAllBtn = document.getElementById("acceptAll");
-  if (acceptAllBtn) {
-    acceptAllBtn.addEventListener("click", () => {
-      CookieConsent.setConsent(true, true);
-      CookieConsent.hideBanner();
-      showAlert("Alle Cookies akzeptiert", "success");
-      if (
-        !stripe &&
-        STRIPE_PUBLISHABLE_KEY !== "DEIN_STRIPE_PUBLISHABLE_KEY" &&
-        typeof Stripe !== "undefined"
-      ) {
-        stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-        debugLog("Stripe nach Cookie-Zustimmung initialisiert");
-      }
-      CookieConsent.loadAnalytics();
-    });
-  }
-  const acceptEssentialBtn = document.getElementById("acceptEssential");
-  if (acceptEssentialBtn) {
-    acceptEssentialBtn.addEventListener("click", () => {
-      CookieConsent.setConsent(false, false);
-      CookieConsent.hideBanner();
-      showAlert("Nur notwendige Cookies akzeptiert", "success");
-      if (
-        !stripe &&
-        STRIPE_PUBLISHABLE_KEY !== "DEIN_STRIPE_PUBLISHABLE_KEY" &&
-        typeof Stripe !== "undefined"
-      ) {
-        stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-        debugLog("Stripe nach Cookie-Zustimmung initialisiert");
-      }
-    });
-  }
-  const openCookieSettings = document.getElementById("openCookieSettings");
-  if (openCookieSettings) {
-    openCookieSettings.addEventListener("click", (e) => {
-      e.preventDefault();
-      CookieConsent.showBanner();
-    });
-  }
-}
 
-// ============================================
-// >>> GLIEDERUNGSPUNKT 8: LOGIN & REGISTRATION
-// ============================================
-async function handleLogin(e) {
-  e.preventDefault();
-  const email = document.getElementById("loginEmail").value;
-  const password = document.getElementById("loginPassword").value;
-  debugLog("Login-Versuch:", { email });
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  debugLog("Login-Antwort:", { data, error });
-  if (error) {
-    console.error("Login error:", error);
-    showAlert("Anmeldung fehlgeschlagen: " + error.message, "error");
-    return;
-  }
-  debugLog("Login erfolgreich!");
-  currentUser = data.user;
-  await loadUserSubscription();
-  updateUIForLoggedInUser();
-  hideModal("loginModal");
-  showAlert("Erfolgreich angemeldet!", "success");
-}
+  // Auth Tabs
+  const authTabs = document.querySelectorAll(".auth-tab");
+  authTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      authTabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
 
-async function handleRegister(e) {
-  e.preventDefault();
-  const name = document.getElementById("registerName").value;
-  const email = document.getElementById("registerEmail").value;
-  const password = document.getElementById("registerPassword").value;
-  const acceptPrivacy = document.getElementById("acceptPrivacy").checked;
-  debugLog("Registrierungsversuch:", {
-    name,
-    email,
-    passwordLength: password.length,
-    acceptPrivacy,
-  });
-  if (!acceptPrivacy) {
-    showAlert("Bitte akzeptiere die Datenschutzerklärung und AGB", "error");
-    return;
-  }
-  if (password.length < 6) {
-    showAlert("Passwort muss mindestens 6 Zeichen lang sein", "error");
-    return;
-  }
-  try {
-    debugLog("Sende Registrierung an Supabase...");
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: name,
-          privacy_accepted: true,
-          privacy_accepted_at: new Date().toISOString(),
-        },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    debugLog("Supabase Antwort:", { data, error });
-    if (error) {
-      console.error("Registration error:", error);
-      if (error.message.includes("User already registered")) {
-        showAlert(
-          "Diese E-Mail ist bereits registriert. Bitte melde dich an.",
-          "error"
-        );
-      } else if (error.message.includes("Database error")) {
-        showAlert(
-          "Datenbankfehler! Bitte öffne die Browser-Konsole (F12) für Details.",
-          "error"
-        );
-      } else if (error.message.includes("Unable to validate email")) {
-        showAlert(
-          "E-Mail-Format ungültig. Bitte überprüfe die E-Mail-Adresse.",
-          "error"
-        );
+      const authType = tab.dataset.auth;
+      const modalTitle = document.getElementById("modal-title");
+      const submitBtn = document.getElementById("auth-submit-btn");
+
+      if (authType === "login") {
+        modalTitle.textContent = "Login";
+        submitBtn.textContent = "Login";
       } else {
-        showAlert("Registrierung fehlgeschlagen: " + error.message, "error");
+        modalTitle.textContent = "Registrieren";
+        submitBtn.textContent = "Registrieren";
       }
-      return;
-    }
-    debugLog("Registrierung erfolgreich!", data);
-    hideModal("registerModal");
-    if (
-      data.user &&
-      data.user.identities &&
-      data.user.identities.length === 0
-    ) {
-      showAlert(
-        "Registrierung erfolgreich! Bitte bestätige deine E-Mail, um dich anzumelden.",
-        "success"
-      );
-      debugLog("E-Mail-Bestätigung erforderlich");
-    } else if (data.session) {
-      debugLog("Auto-Login aktiv");
-      currentUser = data.user;
-      await loadUserSubscription();
-      updateUIForLoggedInUser();
-      showAlert("Registrierung und Anmeldung erfolgreich!", "success");
-    } else {
-      showAlert(
-        "Registrierung erfolgreich! Du kannst dich jetzt anmelden.",
-        "success"
-      );
-      debugLog("Manuelle Anmeldung erforderlich");
-    }
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    showAlert(
-      "Ein unerwarteter Fehler ist aufgetreten. Siehe Browser-Konsole (F12).",
-      "error"
-    );
-  }
-}
-
-async function logout() {
-  await supabase.auth.signOut();
-  currentUser = null;
-  userSubscription = null;
-  updateUIForLoggedOutUser();
-  showAlert("Erfolgreich abgemeldet", "success");
-}
-
-// ============================================
-// >>> GLIEDERUNGSPUNKT 9: SUBSCRIPTION & PAYMENT
-// ============================================
-function handleSubscriptionClick(e) {
-  const plan = e.target.getAttribute("data-plan");
-  if (!currentUser) {
-    showAlert("Bitte melde dich zuerst an", "error");
-    showModal("loginModal");
-    return;
-  }
-
-  if (userSubscription) {
-    if (userSubscription.plan === plan) {
-      showAlert("Du hast bereits diesen Plan", "info");
-      return;
-    }
-    showChangePlanModal(plan);
-    return;
-  }
-
-  showPaymentModal(plan);
-}
-
-function showPaymentModal(plan) {
-  document.getElementById("paymentInfo").innerHTML = `
-    <div class="alert alert-success">
-      <strong>${planNames[plan]}-Plan</strong><br>
-      €${planPrices[plan]} / Monat
-    </div>
-  `;
-  document.getElementById("paymentForm").setAttribute("data-plan", plan);
-  showModal("paymentModal");
-}
-
-async function handlePayment(e) {
-  e.preventDefault();
-  const plan = e.target.getAttribute("data-plan");
-  if (!CookieConsent.hasConsent()) {
-    showAlert(
-      "Bitte akzeptiere die Cookie-Einstellungen, um fortzufahren.",
-      "warning"
-    );
-    CookieConsent.showBanner();
-    return;
-  }
-  if (!stripe) {
-    showAlert(
-      "Stripe ist nicht konfiguriert. Demo-Modus wird verwendet.",
-      "warning"
-    );
-    return handleDemoPayment(plan);
-  }
-  debugLog("Starte Stripe Checkout für Plan:", plan);
-  try {
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Wird geladen...";
-    const { error: stripeError } = await stripe.redirectToCheckout({
-      lineItems: [
-        {
-          price: STRIPE_PRICES[plan],
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
-      successUrl: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${window.location.origin}/?cancelled=true`,
-      customerEmail: currentUser.email,
-      clientReferenceId: currentUser.id,
     });
-    if (stripeError) {
-      console.error("Stripe Checkout Error:", stripeError);
-      showAlert(
-        "Fehler beim Öffnen der Zahlungsseite: " + stripeError.message,
-        "error"
+  });
+
+  // Auth Form Submit
+  const authForm = document.getElementById("auth-form");
+  authForm.addEventListener("submit", handleAuth);
+}
+
+// Auth Handler
+async function handleAuth(e) {
+  e.preventDefault();
+
+  const email = document.getElementById("auth-email").value;
+  const password = document.getElementById("auth-password").value;
+  const activeTab = document.querySelector(".auth-tab.active").dataset.auth;
+
+  try {
+    if (activeTab === "login") {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      showNotification("✅ Login erfolgreich!", "success");
+      document.getElementById("auth-modal").style.display = "none";
+      await loadUserData();
+    } else {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      showNotification(
+        "✅ Registrierung erfolgreich! Bitte bestätige deine Email.",
+        "success"
       );
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
+      document.getElementById("auth-modal").style.display = "none";
+    }
+
+    document.getElementById("auth-form").reset();
+  } catch (error) {
+    console.error("Auth error:", error);
+    showNotification("❌ " + error.message, "error");
+  }
+}
+
+// Logout
+function initLogout() {
+  const logoutBtn = document.getElementById("logout-btn");
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      currentUser = null;
+      currentSubscription = null;
+
+      showNotification("✅ Erfolgreich ausgeloggt", "success");
+      updateUIForAuth(false);
+    } catch (error) {
+      console.error("Logout error:", error);
+      showNotification("❌ Logout fehlgeschlagen", "error");
+    }
+  });
+}
+
+// User Daten laden
+async function loadUserData() {
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error) throw error;
+
+    if (user) {
+      currentUser = user;
+
+      // Subscription laden
+      const { data: subscription, error: subError } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .single();
+
+      if (!subError && subscription) {
+        currentSubscription = subscription;
+      }
+
+      updateUIForAuth(true);
+      updateMembersArea();
     }
   } catch (error) {
-    console.error("Payment error:", error);
-    showAlert("Ein Fehler ist aufgetreten. Bitte versuche es erneut.", "error");
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Zur Zahlung";
-    }
+    console.error("Error loading user data:", error);
   }
 }
 
-async function handleDemoPayment(plan) {
-  debugLog("Demo-Zahlung für Plan:", plan);
-  showAlert("Zahlung wird verarbeitet... (Demo-Modus)", "success");
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  const { data, error } = await supabase
-    .from("subscriptions")
-    .insert([
-      {
+// UI für Auth Status aktualisieren
+function updateUIForAuth(isAuthenticated) {
+  const authBtn = document.getElementById("auth-btn");
+  const membersArea = document.getElementById("members-area");
+  const pricingSection = document.getElementById("pricing");
+
+  if (isAuthenticated) {
+    authBtn.textContent = "Members Area";
+    authBtn.onclick = () => {
+      document.getElementById("home").style.display = "none";
+      document.getElementById("features").style.display = "none";
+      pricingSection.style.display = "none";
+      membersArea.style.display = "block";
+      window.scrollTo(0, 0);
+    };
+  } else {
+    authBtn.textContent = "Login";
+    authBtn.onclick = () => {
+      document.getElementById("auth-modal").style.display = "flex";
+    };
+    membersArea.style.display = "none";
+    document.getElementById("home").style.display = "block";
+    document.getElementById("features").style.display = "block";
+    pricingSection.style.display = "block";
+  }
+}
+
+// Members Area aktualisieren
+async function updateMembersArea() {
+  if (!currentUser) return;
+
+  // User Name anzeigen
+  const userName = currentUser.email.split("@")[0];
+  document.getElementById("user-name").textContent = userName;
+
+  // Plan Badge aktualisieren
+  const planBadge = document.getElementById("current-plan-badge");
+  const dashboardPlan = document.getElementById("dashboard-plan");
+  const subPlanName = document.getElementById("sub-plan-name");
+  const subPlanPrice = document.getElementById("sub-plan-price");
+
+  if (currentSubscription) {
+    const plan = currentSubscription.plan;
+    const planNames = {
+      basic: "📦 Basic",
+      pro: "⭐ Pro",
+      elite: "👑 Elite",
+    };
+    const planPrices = {
+      basic: "9,99€/Monat",
+      pro: "19,99€/Monat",
+      elite: "49,99€/Monat",
+    };
+
+    planBadge.textContent = planNames[plan] || "Basic";
+    planBadge.className = "plan-badge " + plan;
+
+    dashboardPlan.textContent = planNames[plan] || "Basic";
+    subPlanName.textContent = planNames[plan] || "Basic";
+    subPlanPrice.textContent = planPrices[plan] || "9,99€/Monat";
+  } else {
+    planBadge.textContent = "📦 Kein Abo";
+    planBadge.className = "plan-badge";
+    dashboardPlan.textContent = "Kein aktives Abo";
+    subPlanName.textContent = "Kein Abo";
+    subPlanPrice.textContent = "-";
+  }
+
+  // Mitglied seit
+  const memberSince = new Date(currentUser.created_at).toLocaleDateString(
+    "de-DE"
+  );
+  document.getElementById("member-since").textContent = memberSince;
+
+  // Content Count laden
+  await updateContentCount();
+}
+
+// Content Count aktualisieren
+async function updateContentCount() {
+  try {
+    const { count, error } = await supabase
+      .from("user_uploads")
+      .select("*", { count: "exact", head: true });
+
+    if (error) throw error;
+
+    document.getElementById("content-count").textContent = count || 0;
+  } catch (error) {
+    console.error("Error loading content count:", error);
+    document.getElementById("content-count").textContent = "-";
+  }
+}
+
+// ============================================
+// SUBSCRIPTION MANAGEMENT
+// ============================================
+
+// Subscribe Buttons
+function initSubscribeButtons() {
+  const subscribeBtns = document.querySelectorAll(".subscribe-btn");
+  subscribeBtns.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const plan = btn.dataset.plan;
+      const price = btn.dataset.price;
+
+      if (!currentUser) {
+        showNotification("⚠️ Bitte melde dich zuerst an", "warning");
+        document.getElementById("auth-modal").style.display = "flex";
+        return;
+      }
+
+      await handleSubscription(plan, price);
+    });
+  });
+}
+
+// Subscription Handler
+async function handleSubscription(plan, price) {
+  try {
+    // Prüfen ob bereits ein Abo existiert
+    const { data: existingSub, error: checkError } = await supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", currentUser.id)
+      .eq("status", "active")
+      .single();
+
+    if (existingSub) {
+      showNotification(
+        "⚠️ Du hast bereits ein aktives Abo. Bitte verwalte es im Members Area.",
+        "warning"
+      );
+      return;
+    }
+
+    // Demo Payment (in Produktion: Stripe Integration)
+    const confirmed = confirm(
+      `Möchtest du das ${plan.toUpperCase()} Paket für ${price}€/Monat abonnieren?`
+    );
+
+    if (!confirmed) return;
+
+    // Subscription in DB erstellen
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .insert({
         user_id: currentUser.id,
         plan: plan,
         status: "active",
-        start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-    ])
-    .select()
-    .single();
-  if (error) {
-    console.error("Subscription error:", error);
-    showAlert("Fehler beim Erstellen des Abos", "error");
-    return;
-  }
-  userSubscription = data;
-  hideModal("paymentModal");
-  updateUIForLoggedInUser();
-  showAlert(
-    "Zahlung erfolgreich! Willkommen im Mitgliederbereich! (Demo)",
-    "success"
-  );
-}
-
-// ============================================
-// >>> GLIEDERUNGSPUNKT 10: UP- & DOWNGRADE MANAGEMENT (NEU)
-// ============================================
-
-function showChangePlanModal(newPlan) {
-  const currentPlan = userSubscription.plan;
-  const currentLevel = planHierarchy[currentPlan];
-  const newLevel = planHierarchy[newPlan];
-  const isUpgrade = newLevel > currentLevel;
-
-  const modal = document.createElement("div");
-  modal.className = "modal";
-  modal.id = "changePlanModal";
-  modal.style.display = "block";
-
-  const priceDiff = Math.abs(planPrices[newPlan] - planPrices[currentPlan]);
-
-  modal.innerHTML = `
-    <div class="modal-content">
-      <span class="close">×</span>
-      <h2>${isUpgrade ? "Upgrade" : "Downgrade"} deines Plans</h2>
-      
-      <div class="plan-change-info">
-        <div class="current-plan-box">
-          <h4>Aktueller Plan</h4>
-          <div class="plan-details">
-            <strong>${planNames[currentPlan]}</strong>
-            <p>€${planPrices[currentPlan]}/Monat</p>
-          </div>
-        </div>
-        
-        <div class="arrow-icon">${isUpgrade ? "→" : "←"}</div>
-        
-        <div class="new-plan-box">
-          <h4>Neuer Plan</h4>
-          <div class="plan-details">
-            <strong>${planNames[newPlan]}</strong>
-            <p>€${planPrices[newPlan]}/Monat</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="alert ${isUpgrade ? "alert-info" : "alert-warning"}">
-        ${
-          isUpgrade
-            ? `<p><strong>Upgrade-Details:</strong></p>
-           <ul>
-             <li>Sofortiger Zugriff auf ${planNames[newPlan]}-Inhalte</li>
-             <li>Preisdifferenz: +€${priceDiff}/Monat</li>
-             <li>Nächste Abbuchung: €${planPrices[newPlan]}</li>
-           </ul>`
-            : `<p><strong>Downgrade-Details:</strong></p>
-           <ul>
-             <li>Änderung erfolgt zum Ende der aktuellen Abrechnungsperiode</li>
-             <li>Du behältst Zugriff auf ${
-               planNames[currentPlan]
-             }-Inhalte bis: ${new Date(
-                userSubscription.end_date
-              ).toLocaleDateString("de-DE")}</li>
-             <li>Ab dann: €${planPrices[newPlan]}/Monat</li>
-             <li>Ersparnis: -€${priceDiff}/Monat</li>
-           </ul>`
-        }
-      </div>
-      
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary cancel-change">Abbrechen</button>
-        <button type="button" class="btn-primary confirm-change" data-new-plan="${newPlan}">
-          ${isUpgrade ? "Jetzt upgraden" : "Downgrade bestätigen"}
-        </button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  modal.querySelector(".close").addEventListener("click", () => {
-    modal.remove();
-  });
-
-  modal.querySelector(".cancel-change").addEventListener("click", () => {
-    modal.remove();
-  });
-
-  modal
-    .querySelector(".confirm-change")
-    .addEventListener("click", async (e) => {
-      const newPlan = e.target.getAttribute("data-new-plan");
-      await handlePlanChange(newPlan, isUpgrade);
-      modal.remove();
-    });
-
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.remove();
-    }
-  });
-}
-
-async function handlePlanChange(newPlan, isUpgrade) {
-  debugLog(`${isUpgrade ? "Upgrade" : "Downgrade"} zu Plan:`, newPlan);
-
-  const confirmBtn = document.querySelector(".confirm-change");
-  if (confirmBtn) {
-    confirmBtn.disabled = true;
-    confirmBtn.textContent = "Wird verarbeitet...";
-  }
-
-  try {
-    if (isUpgrade) {
-      await processUpgrade(newPlan);
-    } else {
-      await processDowngrade(newPlan);
-    }
-  } catch (error) {
-    console.error("Plan change error:", error);
-    showAlert(
-      "Fehler beim Ändern des Plans. Bitte versuche es erneut.",
-      "error"
-    );
-    if (confirmBtn) {
-      confirmBtn.disabled = false;
-      confirmBtn.textContent = isUpgrade
-        ? "Jetzt upgraden"
-        : "Downgrade bestätigen";
-    }
-  }
-}
-
-async function processUpgrade(newPlan) {
-  debugLog("Processing upgrade to:", newPlan);
-
-  if (!stripe || STRIPE_PUBLISHABLE_KEY === "DEIN_STRIPE_PUBLISHABLE_KEY") {
-    showAlert("Upgrade wird verarbeitet... (Demo-Modus)", "success");
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    const { data, error } = await supabase
-      .from("subscriptions")
-      .update({
-        plan: newPlan,
+        current_period_start: new Date().toISOString(),
+        current_period_end: new Date(
+          Date.now() + 30 * 24 * 60 * 60 * 1000
+        ).toISOString(),
       })
-      .eq("id", userSubscription.id)
       .select()
       .single();
 
-    if (error) {
-      console.error("Upgrade error:", error);
-      showAlert("Fehler beim Upgrade", "error");
+    if (error) throw error;
+
+    currentSubscription = data;
+
+    showNotification("✅ Abonnement erfolgreich abgeschlossen!", "success");
+
+    // Zur Members Area wechseln
+    document.getElementById("pricing").style.display = "none";
+    document.getElementById("members-area").style.display = "block";
+    await updateMembersArea();
+  } catch (error) {
+    console.error("Subscription error:", error);
+    showNotification("❌ Fehler beim Abonnieren: " + error.message, "error");
+  }
+}
+
+// Plan Change Buttons
+function initPlanChangeButtons() {
+  const changePlanBtns = document.querySelectorAll(".change-plan-btn");
+  changePlanBtns.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const newPlan = btn.dataset.plan;
+      await handlePlanChange(newPlan);
+    });
+  });
+}
+
+// Plan Change Handler
+async function handlePlanChange(newPlan) {
+  if (!currentSubscription) {
+    showNotification("⚠️ Du hast kein aktives Abo", "warning");
+    return;
+  }
+
+  const currentPlan = currentSubscription.plan;
+
+  if (currentPlan === newPlan) {
+    showNotification("⚠️ Du hast bereits diesen Plan", "warning");
+    return;
+  }
+
+  const planPrices = {
+    basic: "9,99€",
+    pro: "19,99€",
+    elite: "49,99€",
+  };
+
+  const confirmed = confirm(
+    `Möchtest du zu ${newPlan.toUpperCase()} (${
+      planPrices[newPlan]
+    }/Monat) wechseln?`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .update({ plan: newPlan })
+      .eq("id", currentSubscription.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    currentSubscription = data;
+
+    showNotification("✅ Plan erfolgreich geändert!", "success");
+    await updateMembersArea();
+  } catch (error) {
+    console.error("Plan change error:", error);
+    showNotification("❌ Fehler beim Planwechsel: " + error.message, "error");
+  }
+}
+
+// Cancel Subscription
+function initCancelSubscription() {
+  const cancelBtn = document.getElementById("cancel-subscription-btn");
+  cancelBtn.addEventListener("click", async () => {
+    if (!currentSubscription) {
+      showNotification("⚠️ Du hast kein aktives Abo", "warning");
       return;
     }
 
-    userSubscription = data;
-    updateUIForLoggedInUser();
-    showAlert(
-      `Upgrade zu ${planNames[newPlan]} erfolgreich! (Demo)`,
-      "success"
+    const confirmed = confirm("Möchtest du dein Abonnement wirklich kündigen?");
+
+    if (!confirmed) return;
+
+    try {
+      const { error } = await supabase
+        .from("subscriptions")
+        .update({ status: "cancelled" })
+        .eq("id", currentSubscription.id);
+
+      if (error) throw error;
+
+      currentSubscription = null;
+
+      showNotification("✅ Abonnement gekündigt", "success");
+      await updateMembersArea();
+    } catch (error) {
+      console.error("Cancel error:", error);
+      showNotification("❌ Fehler beim Kündigen: " + error.message, "error");
+    }
+  });
+}
+
+// ============================================
+// FILE UPLOAD
+// ============================================
+
+// Upload Form Handler
+async function handleFileUpload(e) {
+  e.preventDefault();
+
+  const fileType = document.getElementById("upload-type").value;
+  const requiredPlan = document.getElementById("upload-plan").value;
+  const title = document.getElementById("upload-title").value;
+  const description = document.getElementById("upload-description").value;
+  const fileInput = document.getElementById("upload-file");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    showNotification("⚠️ Bitte wähle eine Datei aus", "error");
+    return;
+  }
+
+  // Dateigrößen-Validierung
+  const maxSize = fileType === "video" ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
+  if (file.size > maxSize) {
+    showNotification(
+      `❌ Datei zu groß! Maximum: ${fileType === "video" ? "100MB" : "10MB"}`,
+      "error"
     );
-  } else {
-    showAlert("Weiterleitung zur Zahlungsseite...", "info");
-    const { error: stripeError } = await stripe.redirectToCheckout({
-      lineItems: [
-        {
-          price: STRIPE_PRICES[newPlan],
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
-      successUrl: `${window.location.origin}/success.html?session_id={CHECKOUT_SESSION_ID}&upgrade=true`,
-      cancelUrl: `${window.location.origin}/?cancelled=true`,
-      customerEmail: currentUser.email,
-      clientReferenceId: currentUser.id,
+    return;
+  }
+
+  try {
+    showUploadProgress(true);
+
+    const user = await supabase.auth.getUser();
+    if (!user.data.user) throw new Error("Nicht eingeloggt");
+
+    const userId = user.data.user.id;
+    const timestamp = Date.now();
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const filePath = `${userId}/${timestamp}_${sanitizedFileName}`;
+    const bucketName = `user-${fileType}s`;
+
+    // Upload zu Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+
+    // Metadaten in Datenbank speichern
+    const { error: dbError } = await supabase.from("user_uploads").insert({
+      user_id: userId,
+      file_type: fileType,
+      required_plan: requiredPlan,
+      title: title,
+      description: description,
+      file_path: filePath,
+      file_size: file.size,
+      mime_type: file.type,
     });
 
-    if (stripeError) {
-      console.error("Stripe error:", stripeError);
-      showAlert("Fehler beim Upgrade: " + stripeError.message, "error");
-    }
+    if (dbError) throw dbError;
+
+    showNotification("✅ Upload erfolgreich!", "success");
+    document.getElementById("upload-form").reset();
+
+    // Liste neu laden
+    await loadUserUploads();
+    await updateContentCount();
+  } catch (error) {
+    console.error("Upload error:", error);
+    showNotification("❌ Upload fehlgeschlagen: " + error.message, "error");
+  } finally {
+    showUploadProgress(false);
   }
 }
 
-async function processDowngrade(newPlan) {
-  debugLog("Processing downgrade to:", newPlan);
+// Uploads laden und anzeigen
+async function loadUserUploads(filterType = "all") {
+  const uploadsList = document.getElementById("uploads-list");
 
-  showAlert("Downgrade wird verarbeitet...", "info");
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    uploadsList.innerHTML = '<p class="loading">Lade Inhalte...</p>';
 
-  const { data, error } = await supabase
-    .from("subscriptions")
-    .update({
-      pending_plan: newPlan,
-      pending_change_date: userSubscription.end_date,
-    })
-    .eq("id", userSubscription.id)
-    .select()
-    .single();
+    let query = supabase
+      .from("user_uploads")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Downgrade error:", error);
-    showAlert("Fehler beim Downgrade", "error");
-    return;
+    if (filterType !== "all") {
+      query = query.eq("file_type", filterType);
+    }
+
+    const { data: uploads, error } = await query;
+
+    if (error) throw error;
+
+    if (!uploads || uploads.length === 0) {
+      uploadsList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <p>Noch keine Inhalte verfügbar</p>
+                </div>
+            `;
+      return;
+    }
+
+    // Uploads anzeigen
+    uploadsList.innerHTML = uploads
+      .map(
+        (upload) => `
+            <div class="upload-card" data-type="${upload.file_type}">
+                <div class="upload-card-header">
+                    <span class="upload-type-badge ${upload.file_type}">
+                        ${
+                          upload.file_type === "video"
+                            ? "🎥"
+                            : upload.file_type === "image"
+                            ? "🖼️"
+                            : "📄"
+                        }
+                        ${upload.file_type}
+                    </span>
+                    <span class="upload-plan-badge ${upload.required_plan}">
+                        ${
+                          upload.required_plan === "elite"
+                            ? "👑"
+                            : upload.required_plan === "pro"
+                            ? "⭐"
+                            : "📦"
+                        }
+                        ${upload.required_plan}
+                    </span>
+                </div>
+                
+                <h4>${upload.title}</h4>
+                <p>${upload.description || "Keine Beschreibung"}</p>
+                
+                <div class="upload-card-footer">
+                    <span class="upload-date">${new Date(
+                      upload.created_at
+                    ).toLocaleDateString("de-DE")}</span>
+                    <div class="upload-actions">
+                        <button class="btn-icon-only" onclick="downloadFile('${
+                          upload.file_path
+                        }', '${upload.file_type}', '${
+          upload.title
+        }')" title="Herunterladen">
+                            ⬇️
+                        </button>
+                        <button class="btn-icon-only" onclick="viewFile('${
+                          upload.file_path
+                        }', '${upload.file_type}')" title="Ansehen">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `
+      )
+      .join("");
+  } catch (error) {
+    console.error("Error loading uploads:", error);
+    uploadsList.innerHTML = `
+            <div class="empty-state">
+                <p style="color: #f44336;">❌ Fehler beim Laden: ${error.message}</p>
+            </div>
+        `;
   }
-
-  userSubscription = data;
-  updateUIForLoggedInUser();
-
-  const endDate = new Date(userSubscription.end_date).toLocaleDateString(
-    "de-DE"
-  );
-  showAlert(
-    `Downgrade zu ${planNames[newPlan]} vorgemerkt! Wechsel erfolgt am ${endDate}.`,
-    "success"
-  );
 }
 
-async function cancelPendingPlanChange() {
-  if (!userSubscription.pending_plan) {
-    showAlert("Keine ausstehende Plan-Änderung vorhanden", "info");
-    return;
+// Datei herunterladen
+async function downloadFile(filePath, fileType, title) {
+  try {
+    const bucketName = `user-${fileType}s`;
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .download(filePath);
+
+    if (error) throw error;
+
+    const url = URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = title;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showNotification("✅ Download gestartet", "success");
+  } catch (error) {
+    console.error("Download error:", error);
+    showNotification("❌ Download fehlgeschlagen", "error");
   }
-
-  const { data, error } = await supabase
-    .from("subscriptions")
-    .update({
-      pending_plan: null,
-      pending_change_date: null,
-    })
-    .eq("id", userSubscription.id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Cancel pending change error:", error);
-    showAlert("Fehler beim Stornieren", "error");
-    return;
-  }
-
-  userSubscription = data;
-  updateUIForLoggedInUser();
-  showAlert("Geplante Plan-Änderung wurde storniert", "success");
 }
 
-// ============================================
-// >>> GLIEDERUNGSPUNKT 11: UI-UPDATES
-// ============================================
-function updateUIForLoggedInUser() {
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  if (loginBtn) loginBtn.style.display = "none";
-  if (logoutBtn) logoutBtn.style.display = "block";
-  if (userSubscription) {
-    const pricingSection = document.getElementById("pricing");
-    if (pricingSection) {
-      pricingSection.style.display = "none";
-    }
-    const membersArea = document.getElementById("membersArea");
-    if (membersArea) {
-      membersArea.style.display = "block";
-    }
-    displayUserInfo();
-    updatePricingButtons();
-    loadContent();
+// Datei ansehen
+async function viewFile(filePath, fileType) {
+  try {
+    const bucketName = `user-${fileType}s`;
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .createSignedUrl(filePath, 3600); // 1 Stunde gültig
+
+    if (error) throw error;
+
+    window.open(data.signedUrl, "_blank");
+  } catch (error) {
+    console.error("View error:", error);
+    showNotification("❌ Ansicht fehlgeschlagen", "error");
+  }
+}
+
+// Upload-Progress anzeigen
+function showUploadProgress(show) {
+  const progressDiv = document.getElementById("upload-progress");
+  if (show) {
+    progressDiv.style.display = "block";
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      document.getElementById("progress-fill").style.width = progress + "%";
+      document.getElementById("progress-text").textContent = progress + "%";
+      if (progress >= 100) clearInterval(interval);
+    }, 200);
   } else {
-    const pricingSection = document.getElementById("pricing");
-    if (pricingSection) {
-      pricingSection.style.display = "block";
-    }
-    const membersArea = document.getElementById("membersArea");
-    if (membersArea) {
-      membersArea.style.display = "none";
-    }
-    updatePricingButtons();
+    progressDiv.style.display = "none";
+    document.getElementById("progress-fill").style.width = "0%";
+    document.getElementById("progress-text").textContent = "0%";
   }
 }
 
-function updateUIForLoggedOutUser() {
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const membersArea = document.getElementById("membersArea");
-  const pricingSection = document.getElementById("pricing");
-  if (loginBtn) loginBtn.style.display = "block";
-  if (logoutBtn) logoutBtn.style.display = "none";
-  if (membersArea) membersArea.style.display = "none";
-  if (pricingSection) pricingSection.style.display = "block";
-}
+// ============================================
+// TABS NAVIGATION
+// ============================================
+function initTabs() {
+  const tabBtns = document.querySelectorAll(".tab-btn");
+  const contentSections = document.querySelectorAll(".content-section");
 
-function updatePricingButtons() {
-  document.querySelectorAll(".subscribe-btn").forEach((btn) => {
-    const plan = btn.getAttribute("data-plan");
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      // Remove active class from all tabs
+      tabBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
 
-    if (!currentUser) {
-      btn.textContent = "Jetzt starten";
-      btn.className = "subscribe-btn btn-primary";
-      btn.disabled = false;
-      return;
-    }
+      // Hide all content sections
+      contentSections.forEach((section) => {
+        section.style.display = "none";
+      });
 
-    if (!userSubscription) {
-      btn.textContent = "Wählen";
-      btn.className = "subscribe-btn btn-primary";
-      btn.disabled = false;
-      return;
-    }
+      // Show selected section
+      const tabName = btn.dataset.tab;
+      const section = document.getElementById(`${tabName}-section`);
+      if (section) {
+        section.style.display = "block";
 
-    const currentPlan = userSubscription.plan;
-    const currentLevel = planHierarchy[currentPlan];
-    const planLevel = planHierarchy[plan];
-
-    if (currentPlan === plan) {
-      btn.textContent = "Aktueller Plan";
-      btn.className = "subscribe-btn btn-secondary";
-      btn.disabled = true;
-    } else if (planLevel > currentLevel) {
-      btn.textContent = "Upgraden";
-      btn.className = "subscribe-btn btn-success";
-      btn.disabled = false;
-    } else {
-      btn.textContent = "Downgrade";
-      btn.className = "subscribe-btn btn-warning";
-      btn.disabled = false;
-    }
-  });
-}
-
-function displayUserInfo() {
-  const userName = currentUser.user_metadata.full_name || currentUser.email;
-  const userInfoElement = document.getElementById("userInfo");
-
-  if (userInfoElement) {
-    let pendingChangeHtml = "";
-    if (userSubscription.pending_plan) {
-      const pendingDate = new Date(
-        userSubscription.pending_change_date
-      ).toLocaleDateString("de-DE");
-      pendingChangeHtml = `
-        <div class="alert alert-warning" style="margin-top: 15px;">
-          <p><strong>Geplante Änderung:</strong></p>
-          <p>Wechsel zu ${
-            planNames[userSubscription.pending_plan]
-          }-Plan am ${pendingDate}</p>
-          <button onclick="cancelPendingPlanChange()" class="btn-secondary" style="margin-top: 10px;">
-            Änderung stornieren
-          </button>
-        </div>
-      `;
-    }
-
-    let accessWarning = "";
-    if (
-      userSubscription.pending_plan &&
-      planHierarchy[userSubscription.pending_plan] <
-        planHierarchy[userSubscription.plan]
-    ) {
-      const endDate = new Date(
-        userSubscription.pending_change_date
-      ).toLocaleDateString("de-DE");
-      accessWarning = `
-        <div class="alert alert-warning" style="margin-top: 10px; font-size: 0.9em;">
-          Premium-Zugriff endet am <strong>${endDate}</strong>
-        </div>
-      `;
-    }
-
-    userInfoElement.innerHTML = `
-      <h3>Willkommen, ${userName}!</h3>
-      <p><strong>Aktueller Plan:</strong> ${
-        planNames[userSubscription.plan]
-      }</p>
-      <p><strong>Status:</strong> <span style="color: var(--success);">Aktiv</span></p>
-      <p><strong>Gültig bis:</strong> ${new Date(
-        userSubscription.end_date
-      ).toLocaleDateString("de-DE")}</p>
-      ${pendingChangeHtml}
-      ${accessWarning}
-      <div style="margin-top: 20px;">
-        <button onclick="showManagePlanSection()" class="btn btn-primary">
-          Plan verwalten
-        </button>
-      </div>
-    `;
-  }
-}
-
-function showManagePlanSection() {
-  const currentPlan = userSubscription.plan;
-  const currentLevel = planHierarchy[currentPlan];
-
-  const modal = document.createElement("div");
-  modal.className = "modal";
-  modal.id = "managePlanModal";
-  modal.style.display = "block";
-
-  const plansHtml = Object.keys(planHierarchy)
-    .map((plan) => {
-      const level = planHierarchy[plan];
-      const isCurrent = plan === currentPlan;
-      const isUpgrade = level > currentLevel;
-
-      let buttonHtml = "";
-      if (isCurrent) {
-        buttonHtml =
-          '<button class="btn btn-secondary" disabled>Aktueller Plan</button>';
-      } else if (isUpgrade) {
-        buttonHtml = `<button class="btn btn-success" onclick="showChangePlanModal('${plan}'); document.getElementById('managePlanModal').remove();">Upgraden</button>`;
-      } else {
-        buttonHtml = `<button class="btn btn-warning" onclick="showChangePlanModal('${plan}'); document.getElementById('managePlanModal').remove();">Downgrade</button>`;
+        // Wenn Upload-Tab geöffnet wird, Inhalte laden
+        if (tabName === "upload") {
+          loadUserUploads();
+        }
       }
-
-      return `
-      <div class="plan-option ${isCurrent ? "current-plan-highlight" : ""}">
-        <h4>${planNames[plan]}</h4>
-        <p class="plan-price">€${planPrices[plan]}/Monat</p>
-        ${buttonHtml}
-      </div>
-    `;
-    })
-    .join("");
-
-  modal.innerHTML = `
-    <div class="modal-content">
-      <span class="close">×</span>
-      <h2>Plan verwalten</h2>
-      <p style="margin-bottom: 20px;">Wähle einen neuen Plan oder behalte deinen aktuellen Plan.</p>
-      <div class="plans-grid">
-        ${plansHtml}
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  modal.querySelector(".close").addEventListener("click", () => {
-    modal.remove();
-  });
-
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.remove();
-    }
+    });
   });
 }
-
-window.cancelPendingPlanChange = cancelPendingPlanChange;
-window.showManagePlanSection = showManagePlanSection;
-window.showChangePlanModal = showChangePlanModal;
 
 // ============================================
-// >>> GLIEDERUNGSPUNKT 12: CONTENT MANAGEMENT
+// FILTER TABS
 // ============================================
-function loadContent() {
-  loadVideos();
-  loadDocuments();
-  loadImages();
-}
-
-function loadVideos() {
-  const videoList = document.getElementById("videoList");
-  if (!videoList) return;
-  videoList.innerHTML = "";
-  demoContent.videos.forEach((video) => {
-    const hasAccess = hasActiveAccess(video.requiredPlan);
-    const item = createContentItem(video, "video", hasAccess);
-    videoList.appendChild(item);
+function initFilterTabs() {
+  const filterTabs = document.querySelectorAll(".filter-tab");
+  filterTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      filterTabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      const filter = tab.dataset.filter;
+      loadUserUploads(filter);
+    });
   });
 }
 
-function loadDocuments() {
-  const documentList = document.getElementById("documentList");
-  if (!documentList) return;
-  documentList.innerHTML = "";
-  demoContent.documents.forEach((doc) => {
-    const hasAccess = hasActiveAccess(doc.requiredPlan);
-    const item = createContentItem(doc, "document", hasAccess);
-    documentList.appendChild(item);
+// ============================================
+// NAVIGATION
+// ============================================
+function initNavigation() {
+  const navLinks = document.querySelectorAll(".nav-link");
+
+  navLinks.forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      navLinks.forEach((l) => l.classList.remove("active"));
+      link.classList.add("active");
+
+      const target = link.getAttribute("href").substring(1);
+      scrollToSection(target);
+    });
   });
 }
 
-function loadImages() {
-  const imageList = document.getElementById("imageList");
-  if (!imageList) return;
-  imageList.innerHTML = "";
-  demoContent.images.forEach((image) => {
-    const hasAccess = hasActiveAccess(image.requiredPlan);
-    const item = createContentItem(image, "image", hasAccess);
-    imageList.appendChild(item);
-  });
-}
-
-function checkAccess(requiredPlan) {
-  if (!userSubscription) return false;
-  return planHierarchy[userSubscription.plan] >= planHierarchy[requiredPlan];
-}
-
-function hasActiveAccess(requiredPlan) {
-  if (!userSubscription) return false;
-
-  const currentLevel = planHierarchy[userSubscription.plan];
-  const requiredLevel = planHierarchy[requiredPlan];
-
-  if (!userSubscription.pending_plan) {
-    return currentLevel >= requiredLevel;
-  }
-
-  const pendingLevel = planHierarchy[userSubscription.pending_plan];
-  const changeDate = new Date(userSubscription.pending_change_date);
-  const now = new Date();
-
-  if (now < changeDate) {
-    return currentLevel >= requiredLevel;
-  }
-
-  return pendingLevel >= requiredLevel;
-}
-
-function createContentItem(content, type, hasAccess) {
-  const div = document.createElement("div");
-  div.className = "content-item";
-  const planBadges = {
-    basic: '<span class="access-badge basic">Basis</span>',
-    premium: '<span class="access-badge premium">Premium</span>',
-    elite: '<span class="access-badge elite">Elite</span>',
-  };
-  let mediaElement = `<img src="${content.thumbnail}" alt="${content.title}" ${
-    !hasAccess ? 'class="locked"' : ""
-  }>`;
-  let viewerUrl = "";
-  if (hasAccess) {
-    viewerUrl = `viewer.html?url=${encodeURIComponent(
-      content.url
-    )}&title=${encodeURIComponent(
-      content.title
-    )}&description=${encodeURIComponent(
-      content.description
-    )}&type=${type}&plan=${content.requiredPlan}`;
-  }
-  div.innerHTML = `
-    ${mediaElement}
-    <div class="content-info">
-      <h4>${content.title} ${!hasAccess ? "🔒" : ""}</h4>
-      <p>${content.description}</p>
-      ${planBadges[content.requiredPlan]}
-      ${
-        hasAccess
-          ? `<br><a href="${viewerUrl}" class="btn btn-primary" style="display: inline-block; margin-top: 10px; padding: 0.5rem 1rem; text-decoration: none;">Ansehen</a>`
-          : '<p style="color: var(--danger); margin-top: 10px;">Upgrade erforderlich</p>'
-      }
-    </div>
-  `;
-  return div;
-}
-
-function switchTab(tabName) {
-  document.querySelectorAll(".tab-btn").forEach((btn) => {
-    btn.classList.remove("active");
-  });
-  const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
-  if (activeBtn) {
-    activeBtn.classList.add("active");
-  }
-  document.querySelectorAll(".tab-content").forEach((content) => {
-    content.classList.remove("active");
-  });
-  const activeContent = document.getElementById(tabName);
-  if (activeContent) {
-    activeContent.classList.add("active");
+function scrollToSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (section) {
+    section.scrollIntoView({ behavior: "smooth" });
   }
 }
 
 // ============================================
-// >>> GLIEDERUNGSPUNKT 13: UTILITY FUNCTIONS
+// NOTIFICATION
 // ============================================
-function showModal(modalId) {
-  const modal = document.getElementById(modalId);
-  if (modal) {
-    modal.style.display = "block";
-  }
-}
+function showNotification(message, type = "success") {
+  const notification = document.getElementById("notification");
+  notification.textContent = message;
+  notification.className = `notification ${type}`;
+  notification.style.display = "block";
 
-function hideModal(modalId) {
-  const modal = document.getElementById(modalId);
-  if (modal) {
-    modal.style.display = "none";
-  }
-}
-
-function showAlert(message, type) {
-  const alertDiv = document.createElement("div");
-  alertDiv.className = `alert alert-${type}`;
-  alertDiv.textContent = message;
-  const container = document.querySelector(".container");
-  if (container) {
-    container.insertBefore(alertDiv, container.firstChild);
-    setTimeout(() => {
-      alertDiv.remove();
-    }, 5000);
-  }
+  setTimeout(() => {
+    notification.style.display = "none";
+  }, 4000);
 }
 
 // ============================================
-// >>> GLIEDERUNGSPUNKT 14: UPLOAD MANAGEMENT (NEU)
+// INITIALIZATION
 // ============================================
+document.addEventListener("DOMContentLoaded", async () => {
+  // Cookie Consent initialisieren
+  initCookieConsent();
 
-// Storage Buckets Configuration
-const STORAGE_BUCKETS = {
-  video: "user-videos",
-  image: "user-images",
-  document: "user-documents",
-};
+  // Auth initialisieren
+  initAuthModal();
+  initLogout();
 
-// Initialize Upload Event Listeners
-function initializeUploadListeners() {
-  const uploadForm = document.getElementById("uploadForm");
+  // Navigation initialisieren
+  initNavigation();
+
+  // Tabs initialisieren
+  initTabs();
+
+  // Filter Tabs initialisieren
+  initFilterTabs();
+
+  // Subscribe Buttons initialisieren
+  initSubscribeButtons();
+
+  // Plan Change Buttons initialisieren
+  initPlanChangeButtons();
+
+  // Cancel Subscription initialisieren
+  initCancelSubscription();
+
+  // Upload Form initialisieren
+  const uploadForm = document.getElementById("upload-form");
   if (uploadForm) {
     uploadForm.addEventListener("submit", handleFileUpload);
   }
 
-  const uploadType = document.getElementById("uploadType");
-  if (uploadType) {
-    uploadType.addEventListener("change", updateFileAccept);
-  }
-}
-
-// Update file input accept attribute based on type
-function updateFileAccept() {
-  const uploadType = document.getElementById("uploadType").value;
-  const fileInput = document.getElementById("uploadFile");
-
-  if (!fileInput) return;
-
-  switch (uploadType) {
-    case "video":
-      fileInput.accept = "video/*";
-      break;
-    case "image":
-      fileInput.accept = "image/*";
-      break;
-    case "document":
-      fileInput.accept = ".pdf,.doc,.docx";
-      break;
-    default:
-      fileInput.accept = "video/*,image/*,.pdf,.doc,.docx";
-  }
-}
-
-// Handle File Upload
-async function handleFileUpload(e) {
-  e.preventDefault();
-
-  if (!currentUser) {
-    showAlert("Bitte melde dich an, um Dateien hochzuladen", "error");
-    return;
-  }
-
-  const uploadType = document.getElementById("uploadType").value;
-  const title = document.getElementById("uploadTitle").value;
-  const description = document.getElementById("uploadDescription").value;
-  const fileInput = document.getElementById("uploadFile");
-  const file = fileInput.files[0];
-
-  if (!file) {
-    showAlert("Bitte wähle eine Datei aus", "error");
-    return;
-  }
-
-  // Validate file size (100MB max)
-  const maxSize = 100 * 1024 * 1024; // 100MB
-  if (file.size > maxSize) {
-    showAlert("Datei ist zu groß. Maximum: 100MB", "error");
-    return;
-  }
-
-  debugLog("Starting upload:", {
-    uploadType,
-    title,
-    fileName: file.name,
-    fileSize: file.size,
+  // Auth State Listener
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_IN") {
+      loadUserData();
+    } else if (event === "SIGNED_OUT") {
+      updateUIForAuth(false);
+    }
   });
 
-  // Show progress
-  const progressContainer = document.getElementById("uploadProgress");
-  const progressFill = document.getElementById("progressFill");
-  const progressText = document.getElementById("progressText");
-  const submitBtn = e.target.querySelector('button[type="submit"]');
-
-  progressContainer.style.display = "block";
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Wird hochgeladen...";
-
-  try {
-    // Generate unique filename
-    const timestamp = Date.now();
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${currentUser.id}/${timestamp}_${sanitizeFileName(
-      title
-    )}.${fileExt}`;
-
-    // Get the correct bucket
-    const bucket = STORAGE_BUCKETS[uploadType];
-
-    debugLog("Uploading to bucket:", bucket, "filename:", fileName);
-
-    // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: false,
-        onUploadProgress: (progress) => {
-          const percent = Math.round((progress.loaded / progress.total) * 100);
-          progressFill.style.width = percent + "%";
-          progressText.textContent = percent + "%";
-        },
-      });
-
-    if (uploadError) {
-      console.error("Upload error:", uploadError);
-      showAlert("Fehler beim Hochladen: " + uploadError.message, "error");
-      return;
-    }
-
-    debugLog("File uploaded successfully:", uploadData);
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(fileName);
-
-    const fileUrl = urlData.publicUrl;
-    debugLog("Public URL:", fileUrl);
-
-    // Create thumbnail URL (use same for now, can be enhanced later)
-    const thumbnailUrl =
-      uploadType === "image"
-        ? fileUrl
-        : "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png";
-
-    // Save metadata to database
-    const { data: dbData, error: dbError } = await supabase
-      .from("user_uploads")
-      .insert([
-        {
-          user_id: currentUser.id,
-          type: uploadType,
-          title: title,
-          description: description,
-          file_url: fileUrl,
-          thumbnail_url: thumbnailUrl,
-          file_name: fileName,
-          file_size: file.size,
-          bucket: bucket,
-          required_plan: userSubscription ? userSubscription.plan : "basic",
-        },
-      ])
-      .select()
-      .single();
-
-    if (dbError) {
-      console.error("Database error:", dbError);
-      showAlert(
-        "Fehler beim Speichern der Metadaten: " + dbError.message,
-        "error"
-      );
-      return;
-    }
-
-    debugLog("Metadata saved:", dbData);
-
-    // Success!
-    showAlert("Datei erfolgreich hochgeladen! 🎉", "success");
-
-    // Reset form
-    e.target.reset();
-    progressContainer.style.display = "none";
-    progressFill.style.width = "0%";
-
-    // Reload user uploads
-    loadUserUploads();
-  } catch (error) {
-    console.error("Unexpected upload error:", error);
-    showAlert("Ein unerwarteter Fehler ist aufgetreten", "error");
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = "📤 Hochladen";
-  }
-}
-
-// Sanitize filename
-function sanitizeFileName(name) {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "_")
-    .replace(/_+/g, "_")
-    .substring(0, 50);
-}
-
-// Load User Uploads
-async function loadUserUploads() {
-  if (!currentUser) return;
-
-  const uploadsList = document.getElementById("userUploadsList");
-  if (!uploadsList) return;
-
-  uploadsList.innerHTML =
-    '<p style="text-align: center; color: #999;">Lade Uploads...</p>';
-
-  const { data, error } = await supabase
-    .from("user_uploads")
-    .select("*")
-    .eq("user_id", currentUser.id)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error loading uploads:", error);
-    uploadsList.innerHTML =
-      '<p style="text-align: center; color: #f44336;">Fehler beim Laden der Uploads</p>';
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    uploadsList.innerHTML =
-      '<p style="text-align: center; color: #999;">Noch keine Uploads vorhanden</p>';
-    return;
-  }
-
-  uploadsList.innerHTML = "";
-
-  data.forEach((upload) => {
-    const item = createUploadItem(upload);
-    uploadsList.appendChild(item);
-  });
-}
-
-// Create Upload Item
-function createUploadItem(upload) {
-  const div = document.createElement("div");
-  div.className = "content-item upload-item";
-
-  const typeIcons = {
-    video: "📹",
-    image: "🖼️",
-    document: "📄",
-  };
-
-  const fileSize = formatFileSize(upload.file_size);
-  const uploadDate = new Date(upload.created_at).toLocaleDateString("de-DE");
-
-  div.innerHTML = `
-    <img src="${upload.thumbnail_url}" alt="${upload.title}">
-    <div class="content-info">
-      <h4>${typeIcons[upload.type]} ${upload.title}</h4>
-      <p>${upload.description}</p>
-      <p style="font-size: 0.85rem; color: #999; margin-top: 0.5rem;">
-        ${fileSize} • ${uploadDate}
-      </p>
-      <br>
-      <a href="${
-        upload.file_url
-      }" target="_blank" class="btn btn-primary" style="display: inline-block; margin-top: 10px; padding: 0.5rem 1rem; text-decoration: none;">
-        Ansehen
-      </a>
-      <button onclick="deleteUpload('${upload.id}', '${upload.bucket}', '${
-    upload.file_name
-  }')" class="delete-upload-btn">
-        🗑️ Löschen
-      </button>
-    </div>
-  `;
-
-  return div;
-}
-
-// Format File Size
-function formatFileSize(bytes) {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-}
-
-// Delete Upload
-async function deleteUpload(uploadId, bucket, fileName) {
-  if (!confirm("Möchtest du diese Datei wirklich löschen?")) {
-    return;
-  }
-
-  debugLog("Deleting upload:", { uploadId, bucket, fileName });
-
-  try {
-    // Delete from storage
-    const { error: storageError } = await supabase.storage
-      .from(bucket)
-      .remove([fileName]);
-
-    if (storageError) {
-      console.error("Storage delete error:", storageError);
-      showAlert(
-        "Fehler beim Löschen der Datei: " + storageError.message,
-        "error"
-      );
-      return;
-    }
-
-    // Delete from database
-    const { error: dbError } = await supabase
-      .from("user_uploads")
-      .delete()
-      .eq("id", uploadId);
-
-    if (dbError) {
-      console.error("Database delete error:", dbError);
-      showAlert(
-        "Fehler beim Löschen der Metadaten: " + dbError.message,
-        "error"
-      );
-      return;
-    }
-
-    showAlert("Datei erfolgreich gelöscht", "success");
-    loadUserUploads();
-  } catch (error) {
-    console.error("Unexpected delete error:", error);
-    showAlert("Ein unerwarteter Fehler ist aufgetreten", "error");
-  }
-}
-
-// Make deleteUpload available globally
-window.deleteUpload = deleteUpload;
-
-// Update the initialization to include upload listeners
-document.addEventListener("DOMContentLoaded", async () => {
-  CookieConsent.init();
-  // ... existing initialization code ...
-  await checkUserSession();
-  initializeEventListeners();
-  initializeUploadListeners(); // ADD THIS LINE
+  // Initial User laden
+  await loadUserData();
 });
 
-// Update loadContent function to include user uploads
-function loadContent() {
-  loadVideos();
-  loadDocuments();
-  loadImages();
-  loadUserUploads(); // ADD THIS LINE
-}
+// ============================================
+// GLOBALE FUNKTIONEN (für onclick in HTML)
+// ============================================
+window.downloadFile = downloadFile;
+window.viewFile = viewFile;
+window.scrollToSection = scrollToSection;
