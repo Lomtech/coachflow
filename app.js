@@ -3,7 +3,7 @@
 // ============================================
 
 // Supabase Konfiguration
-const SUPABASE_URL = "DEINE_SUPABASE_URL"; // Ersetze mit deiner URL
+const SUPABASE_URL = "DEIN_SUPABASE_URL"; // Ersetze mit deiner URL
 const SUPABASE_ANON_KEY = "DEIN_SUPABASE_ANON_KEY"; // Ersetze mit deinem Key
 
 // Stripe Konfiguration (für Demo)
