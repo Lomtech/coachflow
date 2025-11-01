@@ -12,7 +12,7 @@
 
 # ============================================
 # 1. BUILD-EINSTELLUNGEN
-# >>> GLIEDERUNGSPUNKT 1: BUILD-EINSTELLUNGEN 2
+# >>> GLIEDERUNGSPUNKT 1: BUILD-EINSTELLUNGEN
 # ============================================
 [build]
   publish = "dist"
@@ -77,7 +77,6 @@
 # ============================================
 # Allgemeine Security Headers für alle Seiten
 [[headers]]
-Permissions-Policy = "payment=(self)"
   for = "/*"
   [headers.values]
     # Verhindert Einbettung in iframes (Clickjacking-Schutz)
