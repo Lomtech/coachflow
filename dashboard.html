@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coach Dashboard - CoachFlow</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-brand">
+        <h1>CoachFlow Dashboard</h1>
+      </div>
+      <div class="nav-links">
+        <span id="coachName">Laden...</span>
+        <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Dashboard -->
+  <div class="dashboard-container">
+    <div class="container">
+      
+      <!-- Welcome & Status -->
+      <section class="dashboard-section">
+        <h2>Willkommen zurück!</h2>
+        <div class="status-cards">
+          <div class="status-card">
+            <h3>Dein Plan</h3>
+            <p id="coachPlan">Laden...</p>
+          </div>
+          <div class="status-card">
+            <h3>Aktive Mitglieder</h3>
+            <p id="memberCount">0</p>
+          </div>
+          <div class="status-card">
+            <h3>Hochgeladene Inhalte</h3>
+            <p id="contentCount">0</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stripe Connect Status -->
+      <section class="dashboard-section">
+        <h2>💳 Girokonto-Verbindung</h2>
+        <div id="stripeConnectStatus" class="card">
+          <p>Verbinde dein Girokonto mit Stripe Connect, um Zahlungen von deinen Kunden zu erhalten.</p>
+          <button id="connectStripeBtn" class="btn btn-primary">Girokonto verbinden</button>
+        </div>
+      </section>
+
+      <!-- Tier Configuration -->
+      <section class="dashboard-section">
+        <h2>🎯 Membership-Tier konfigurieren</h2>
+        <div class="card">
+          <form id="tierForm">
+            <div class="form-group">
+              <label for="tierName">Tier-Bezeichnung</label>
+              <input type="text" id="tierName" placeholder="z.B. Pro Membership" required>
+            </div>
+            <div class="form-group">
+              <label for="tierPrice">Preis (in €)</label>
+              <input type="number" id="tierPrice" min="1" placeholder="z.B. 79" required>
+            </div>
+            <div class="form-group">
+              <label for="tierDescription">Beschreibung / Leistungen</label>
+              <textarea id="tierDescription" rows="5" placeholder="z.B. Zugriff auf alle Trainingsvideos, wöchentliche Live-Sessions, persönlicher Support..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Tier speichern</button>
+          </form>
+
+          <!-- Current Tier Display -->
+          <div id="currentTier" style="display: none; margin-top: 20px; padding: 20px; background: #f5f5f5; border-radius: 8px;">
+            <h3>Aktuelles Tier</h3>
+            <p><strong>Name:</strong> <span id="currentTierName"></span></p>
+            <p><strong>Preis:</strong> <span id="currentTierPrice"></span>€/Monat</p>
+            <p><strong>Beschreibung:</strong> <span id="currentTierDescription"></span></p>
+            <button id="editTierBtn" class="btn btn-secondary">Bearbeiten</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Content Upload -->
+      <section class="dashboard-section">
+        <h2>📤 Inhalte hochladen</h2>
+        <div class="card">
+          <form id="uploadForm">
+            <div class="form-group">
+              <label for="contentTitle">Titel</label>
+              <input type="text" id="contentTitle" placeholder="z.B. Ganzkörper-Workout Tag 1" required>
+            </div>
+            <div class="form-group">
+              <label for="contentFile">Datei (Video, PDF, Bild)</label>
+              <input type="file" id="contentFile" accept="video/*,application/pdf,image/*" required>
+              <small>Max. 500MB pro Datei</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Hochladen</button>
+          </form>
+
+          <!-- Upload Progress -->
+          <div id="uploadProgress" style="display: none; margin-top: 20px;">
+            <div class="progress-bar">
+              <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <p id="progressText">0%</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Content List -->
+      <section class="dashboard-section">
+        <h2>📚 Deine Inhalte</h2>
+        <div id="contentList" class="content-grid">
+          <!-- Content items will be loaded here -->
+        </div>
+      </section>
+
+      <!-- Membership Link -->
+      <section class="dashboard-section">
+        <h2>🔗 Dein Membership-Link</h2>
+        <div class="card">
+          <p>Teile diesen Link mit deinen Kunden, damit sie sich anmelden können:</p>
+          <div class="link-container">
+            <input type="text" id="membershipLink" readonly>
+            <button id="copyLinkBtn" class="btn btn-secondary">Kopieren</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

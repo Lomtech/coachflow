@@ -1,341 +1,185 @@
+
 <!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
-    />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta
-      name="description"
-      content="Premium Fitness Training mit exklusiven Inhalten - Upgrade und Downgrade jederzeit möglich"
-    />
-    <!-- Cache-Control für Development -->
-    <meta
-      http-equiv="Cache-Control"
-      content="no-cache, no-store, must-revalidate"
-    />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <title>FittiCoach - Premium Fitness Training</title>
-    <link rel="stylesheet" href="styles.css" />
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoachFlow - Die SaaS-Plattform für Coaches</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-brand">
+        <h1>CoachFlow</h1>
+      </div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Preise</a>
+        <a href="#contact">Kontakt</a>
+      </div>
+    </div>
+  </nav>
 
-    <!-- Supabase Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">Deine Membership-Website in Minuten</h1>
+        <p class="hero-subtitle">
+          CoachFlow ist die All-in-One-Plattform für Fitness- und Yoga-Coaches. 
+          Erstelle deine eigene Membership-Website, verkaufe Online-Kurse und 
+          verwalte deine Kunden - alles an einem Ort.
+        </p>
+        <a href="#pricing" class="btn btn-primary btn-lg">Jetzt starten</a>
+      </div>
+    </div>
+  </section>
 
-    <!-- Stripe.js -->
-    <script src="https://js.stripe.com/v3/"></script>
-  </head>
-  <body>
-    <!-- Cookie Consent Banner 2 -->
-    <div id="cookieConsent" class="cookie-banner" style="display: none">
-      <div class="cookie-content">
-        <div class="cookie-text">
-          <h3>🍪 Cookie-Einstellungen</h3>
-          <p>
-            Wir verwenden Cookies, um dir die bestmögliche Erfahrung zu bieten.
-            Essentielle Cookies sind für die Funktion der Website notwendig.
-            Weitere Informationen findest du in unserer
-            <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a>
-            und <a href="cookies.html" target="_blank">Cookie-Richtlinie</a>.
-          </p>
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="container">
+      <h2 class="section-title">Alles, was du brauchst</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎥</div>
+          <h3>Video-Streaming</h3>
+          <p>Lade deine Trainingsvideos hoch und streame sie sicher an deine Mitglieder.</p>
         </div>
-        <div class="cookie-buttons">
-          <button id="acceptAll" class="btn btn-primary">
-            Alle akzeptieren
-          </button>
-          <button id="acceptEssential" class="btn btn-secondary">
-            Nur Notwendige
-          </button>
+        <div class="feature-card">
+          <div class="feature-icon">💳</div>
+          <h3>Automatische Zahlungen</h3>
+          <p>Stripe Connect kümmert sich um alle Zahlungen - direkt auf dein Girokonto.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>Flexible Mitgliedschaften</h3>
+          <p>Erstelle dein individuelles Membership-Tier mit eigenem Preis und Leistungen.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3>Mobile-Optimiert</h3>
+          <p>Deine Membership-Website funktioniert perfekt auf allen Geräten.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Dashboard & Analytics</h3>
+          <p>Behalte den Überblick über deine Mitglieder und Einnahmen.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Sofort einsatzbereit</h3>
+          <p>Keine technischen Kenntnisse erforderlich. Starte in wenigen Minuten.</p>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- Navigation -->
-    <nav>
-      <div class="container">
-        <a href="/" class="logo">🏋️ FittiCoach</a>
-        <div class="nav-buttons">
-          <button id="loginBtn" class="btn btn-primary">Anmelden</button>
-          <button
-            id="logoutBtn"
-            class="btn btn-secondary"
-            style="display: none"
-          >
-            Abmelden
-          </button>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="container">
-        <h1>Werde die beste Version von dir</h1>
-        <p>
-          Professionelle Trainingspläne, Ernährungsguides und exklusive Videos
-          von zertifizierten Coaches. Upgrade oder Downgrade jederzeit möglich!
-        </p>
-        <button
-          id="ctaBtn"
-          class="btn btn-primary"
-          style="font-size: 1.1rem; padding: 1rem 2rem"
-        >
-          Jetzt starten
-        </button>
-      </div>
-    </section>
-
-    <!-- Pricing Section -->
-    <section id="pricing">
-      <div class="container">
-        <h2 class="text-center">Wähle deinen Plan</h2>
-        <p class="text-center" style="color: #999; margin-bottom: 3rem">
-          Alle Pläne mit 30 Tage Geld-zurück-Garantie • Jederzeit upgraden oder
-          downgraden
-        </p>
-
-        <div class="pricing-cards">
-          <!-- Basic Plan -->
-          <div class="pricing-card">
-            <h3>Basis</h3>
-            <div class="price">€29<span>/Monat</span></div>
-            <ul class="features">
-              <li>Grundlegende Trainingspläne</li>
-              <li>Basis Übungsvideos</li>
-              <li>Community-Zugang</li>
-              <li>E-Mail Support</li>
-            </ul>
-            <button class="subscribe-btn" data-plan="basic">
-              Basis wählen
-            </button>
+  <!-- Pricing Section -->
+  <section id="pricing" class="pricing">
+    <div class="container">
+      <h2 class="section-title">Wähle deinen Plan</h2>
+      <p class="section-subtitle">Monatliche Plattformgebühr - Jederzeit kündbar</p>
+      
+      <div class="pricing-grid">
+        <!-- Basic Plan -->
+        <div class="pricing-card">
+          <div class="plan-header">
+            <h3>Basic</h3>
+            <div class="plan-price">
+              <span class="price">49€</span>
+              <span class="period">/Monat</span>
+            </div>
           </div>
+          <ul class="plan-features">
+            <li>✅ 1 Membership-Tier</li>
+            <li>✅ Unbegrenzte Videos</li>
+            <li>✅ PDF & Bild-Upload</li>
+            <li>✅ Stripe Connect Integration</li>
+            <li>✅ Mitgliederverwaltung</li>
+            <li>✅ E-Mail Support</li>
+          </ul>
+          <form id="basicForm" class="pricing-form">
+            <input type="text" name="name" placeholder="Dein Name" required>
+            <input type="email" name="email" placeholder="Deine E-Mail" required>
+            <button type="submit" class="btn btn-primary">Basic wählen</button>
+          </form>
+        </div>
 
-          <!-- Premium Plan -->
-          <div class="pricing-card featured">
-            <div class="featured-badge">⭐ BELIEBT</div>
+        <!-- Premium Plan -->
+        <div class="pricing-card featured">
+          <div class="popular-badge">Beliebt</div>
+          <div class="plan-header">
             <h3>Premium</h3>
-            <div class="price">€59<span>/Monat</span></div>
-            <ul class="features">
-              <li>Alle Basis-Features</li>
-              <li>Erweiterte Trainingspläne</li>
-              <li>Premium Videos & Tutorials</li>
-              <li>Ernährungsguides</li>
-              <li>Vorrang-Support</li>
-            </ul>
-            <button class="subscribe-btn" data-plan="premium">
-              Premium wählen
-            </button>
+            <div class="plan-price">
+              <span class="price">199€</span>
+              <span class="period">/Monat</span>
+            </div>
           </div>
+          <ul class="plan-features">
+            <li>✅ Alles aus Basic</li>
+            <li>✅ Custom Branding</li>
+            <li>✅ Eigene Domain</li>
+            <li>✅ Analytics Dashboard</li>
+            <li>✅ Prioritäts-Support</li>
+            <li>✅ White-Label Option</li>
+          </ul>
+          <form id="premiumForm" class="pricing-form">
+            <input type="text" name="name" placeholder="Dein Name" required>
+            <input type="email" name="email" placeholder="Deine E-Mail" required>
+            <button type="submit" class="btn btn-primary">Premium wählen</button>
+          </form>
+        </div>
 
-          <!-- Elite Plan -->
-          <div class="pricing-card">
+        <!-- Elite Plan -->
+        <div class="pricing-card">
+          <div class="plan-header">
             <h3>Elite</h3>
-            <div class="price">€99<span>/Monat</span></div>
-            <ul class="features">
-              <li>Alle Premium-Features</li>
-              <li>Persönliche Trainingspläne</li>
-              <li>1:1 Video-Coaching</li>
-              <li>Individuelle Ernährungspläne</li>
-              <li>24/7 Premium Support</li>
-              <li>Exklusive Community</li>
-            </ul>
-            <button class="subscribe-btn" data-plan="elite">
-              Elite wählen
-            </button>
+            <div class="plan-price">
+              <span class="price">399€</span>
+              <span class="period">/Monat</span>
+            </div>
           </div>
+          <ul class="plan-features">
+            <li>✅ Alles aus Premium</li>
+            <li>✅ Dedizierter Support</li>
+            <li>✅ API-Zugriff</li>
+            <li>✅ Custom Entwicklung</li>
+            <li>✅ Persönlicher Onboarding-Call</li>
+            <li>✅ Monatliche Beratung</li>
+          </ul>
+          <form id="eliteForm" class="pricing-form">
+            <input type="text" name="name" placeholder="Dein Name" required>
+            <input type="email" name="email" placeholder="Deine E-Mail" required>
+            <button type="submit" class="btn btn-primary">Elite wählen</button>
+          </form>
         </div>
-      </div>
-    </section>
-
-    <!-- Members Area -->
-    <section id="membersArea" style="display: none">
-      <div class="container">
-        <!-- User Info -->
-        <div class="user-info" id="userInfo">
-          <!-- Wird von JavaScript gefüllt -->
-        </div>
-
-        <!-- Content Tabs -->
-        <div class="tabs">
-          <button class="tab-btn active" data-tab="videos">📹 Videos</button>
-          <button class="tab-btn" data-tab="documents">📄 Dokumente</button>
-          <button class="tab-btn" data-tab="images">🖼️ Bilder</button>
-        </div>
-
-        <!-- Videos Tab -->
-        <div id="videos" class="tab-content active">
-          <div class="content-grid" id="videoList">
-            <!-- Wird von JavaScript gefüllt -->
-          </div>
-        </div>
-
-        <!-- Documents Tab -->
-        <div id="documents" class="tab-content">
-          <div class="content-grid" id="documentList">
-            <!-- Wird von JavaScript gefüllt -->
-          </div>
-        </div>
-
-        <!-- Images Tab -->
-        <div id="images" class="tab-content">
-          <div class="content-grid" id="imageList">
-            <!-- Wird von JavaScript gefüllt -->
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-section">
-            <h4>FittiCoach</h4>
-            <p>Premium Fitness Training für deine Ziele</p>
-            <p style="margin-top: 10px; font-size: 14px">
-              ✅ Jederzeit upgraden<br />
-              ✅ Jederzeit downgraden<br />
-              ✅ Faire Preise
-            </p>
-          </div>
-          <div class="footer-section">
-            <h4>Rechtliches</h4>
-            <ul class="footer-links">
-              <li><a href="impressum.html">Impressum</a></li>
-              <li><a href="datenschutz.html">Datenschutz</a></li>
-              <li><a href="cookies.html">Cookie-Richtlinie</a></li>
-              <li><a href="agb.html">AGB</a></li>
-            </ul>
-          </div>
-          <div class="footer-section">
-            <h4>Support</h4>
-            <ul class="footer-links">
-              <li>
-                <a href="mailto:support@fitticoach.de">support@fitticoach.de</a>
-              </li>
-              <li>
-                <a href="#" id="openCookieSettings">Cookie-Einstellungen</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <p>&copy; 2025 FittiCoach. Alle Rechte vorbehalten.</p>
-        </div>
-      </div>
-    </footer>
-
-    <!-- Login Modal -->
-    <div id="loginModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Anmelden</h2>
-        <form id="loginForm">
-          <div class="form-group">
-            <label>E-Mail</label>
-            <input type="email" id="loginEmail" required />
-          </div>
-          <div class="form-group">
-            <label>Passwort</label>
-            <input type="password" id="loginPassword" required />
-          </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%">
-            Anmelden
-          </button>
-          <div class="form-link">
-            Noch kein Konto?
-            <a href="#" id="showRegister">Jetzt registrieren</a>
-          </div>
-        </form>
       </div>
     </div>
+  </section>
 
-    <!-- Register Modal -->
-    <div id="registerModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Registrieren</h2>
-        <form id="registerForm">
-          <div class="form-group">
-            <label>Name</label>
-            <input type="text" id="registerName" required />
-          </div>
-          <div class="form-group">
-            <label>E-Mail</label>
-            <input type="email" id="registerEmail" required />
-          </div>
-          <div class="form-group">
-            <label>Passwort (min. 6 Zeichen)</label>
-            <input
-              type="password"
-              id="registerPassword"
-              required
-              minlength="6"
-            />
-          </div>
-          <div class="form-group checkbox-group">
-            <label>
-              <input type="checkbox" id="acceptPrivacy" required />
-              Ich akzeptiere die
-              <a href="datenschutz.html" target="_blank"
-                >Datenschutzerklärung</a
-              >
-              und <a href="agb.html" target="_blank">AGB</a>
-            </label>
-          </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%">
-            Registrieren
-          </button>
-          <div class="form-link">
-            Bereits registriert? <a href="#" id="showLogin">Jetzt anmelden</a>
-          </div>
-        </form>
-      </div>
+  <!-- Contact Section -->
+  <section id="contact" class="contact">
+    <div class="container">
+      <h2 class="section-title">Fragen? Wir helfen gerne!</h2>
+      <p class="section-subtitle">Kontaktiere uns unter: <a href="mailto:support@coachflow.de">support@coachflow.de</a></p>
     </div>
+  </section>
 
-    <!-- Payment Modal -->
-    <div id="paymentModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Zahlung</h2>
-        <div id="paymentInfo">
-          <!-- Wird von JavaScript gefüllt -->
-        </div>
-        <form id="paymentForm">
-          <p style="color: #999; text-align: center; margin: 2rem 0">
-            Du wirst zu Stripe weitergeleitet, um die Zahlung sicher
-            abzuschließen.
-          </p>
-          <button type="submit" class="btn btn-primary" style="width: 100%">
-            Zur Zahlung
-          </button>
-          <p
-            style="
-              font-size: 13px;
-              color: #999;
-              text-align: center;
-              margin-top: 1rem;
-            "
-          >
-            Mit dem Abschluss akzeptierst du unsere
-            <a href="agb.html" target="_blank">AGB</a> und
-            <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a>.
-            <br />
-            <strong>Du kannst jederzeit upgraden oder downgraden.</strong>
-          </p>
-        </form>
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-links">
+        <a href="agb.html">AGB</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="impressum.html">Impressum</a>
       </div>
+      <p>&copy; 2025 CoachFlow. Alle Rechte vorbehalten.</p>
     </div>
+  </footer>
 
-    <!-- App Script -->
-    <script src="app.js"></script>
-    <!-- Dynamic Coach Extension -->
-    <script src="app-dynamic-coach.js"></script>
-  </body>
+  <script src="landing.js"></script>
+</body>
 </html>
