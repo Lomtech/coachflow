@@ -12,7 +12,7 @@
 
 # ============================================
 # 1. BUILD-EINSTELLUNGEN
-# >>> GLIEDERUNGSPUNKT 1: BUILD-EINSTELLUNGEN
+# >>> GLIEDERUNGSPUNKT 1: BUILD-EINSTELLUNGEN 2
 # ============================================
 [build]
   publish = "dist"
