@@ -1440,3 +1440,99 @@ a {
     background: white;
   }
 }
+
+/* Upload Section Styles */
+.upload-section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.upload-form-container {
+  background: var(--card-bg, #1a1a1a);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.upload-form-container select,
+.upload-form-container input[type="file"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #333;
+  border-radius: 5px;
+  background: #2a2a2a;
+  color: white;
+  font-size: 1rem;
+}
+
+.upload-form-container textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #333;
+  border-radius: 5px;
+  background: #2a2a2a;
+  color: white;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.upload-progress {
+  margin: 1.5rem 0;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 30px;
+  background: #2a2a2a;
+  border-radius: 15px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+#progressText {
+  text-align: center;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #667eea;
+}
+
+.user-uploads-section {
+  margin-top: 3rem;
+}
+
+.upload-item {
+  position: relative;
+}
+
+.delete-upload-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.3s;
+  z-index: 10;
+}
+
+.delete-upload-btn:hover {
+  background: rgba(220, 38, 38, 1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .upload-form-container {
+    padding: 1.5rem;
+  }
+}

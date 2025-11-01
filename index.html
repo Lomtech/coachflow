@@ -15,7 +15,6 @@
       name="description"
       content="Premium Fitness Training mit exklusiven Inhalten - Upgrade und Downgrade jederzeit möglich"
     />
-    <!-- Cache-Control für Development -->
     <meta
       http-equiv="Cache-Control"
       content="no-cache, no-store, must-revalidate"
@@ -32,7 +31,7 @@
     <script src="https://js.stripe.com/v3/"></script>
   </head>
   <body>
-    <!-- Cookie Consent Banner 2 -->
+    <!-- Cookie Consent Banner -->
     <div id="cookieConsent" class="cookie-banner" style="display: none">
       <div class="cookie-content">
         <div class="cookie-text">
@@ -166,6 +165,7 @@
           <button class="tab-btn active" data-tab="videos">📹 Videos</button>
           <button class="tab-btn" data-tab="documents">📄 Dokumente</button>
           <button class="tab-btn" data-tab="images">🖼️ Bilder</button>
+          <button class="tab-btn" data-tab="upload">⬆️ Upload</button>
         </div>
 
         <!-- Videos Tab -->
@@ -186,6 +186,92 @@
         <div id="images" class="tab-content">
           <div class="content-grid" id="imageList">
             <!-- Wird von JavaScript gefüllt -->
+          </div>
+        </div>
+
+        <!-- Upload Tab (NEU) -->
+        <div id="upload" class="tab-content">
+          <div class="upload-section">
+            <h3>Inhalte hochladen</h3>
+            <p style="color: #999; margin-bottom: 2rem">
+              Lade deine eigenen Videos, Bilder und Dokumente hoch
+            </p>
+
+            <!-- Upload Form -->
+            <div class="upload-form-container">
+              <form id="uploadForm">
+                <div class="form-group">
+                  <label>Typ auswählen</label>
+                  <select id="uploadType" required>
+                    <option value="">-- Bitte wählen --</option>
+                    <option value="video">📹 Video</option>
+                    <option value="image">🖼️ Bild</option>
+                    <option value="document">📄 Dokument</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Titel</label>
+                  <input
+                    type="text"
+                    id="uploadTitle"
+                    required
+                    placeholder="z.B. Mein Workout Video"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Beschreibung</label>
+                  <textarea
+                    id="uploadDescription"
+                    required
+                    placeholder="Kurze Beschreibung des Inhalts"
+                    rows="3"
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label>Datei auswählen</label>
+                  <input
+                    type="file"
+                    id="uploadFile"
+                    required
+                    accept="video/*,image/*,.pdf,.doc,.docx"
+                  />
+                  <small style="color: #999; display: block; margin-top: 5px">
+                    Max. 100MB • Videos: MP4, MOV • Bilder: JPG, PNG •
+                    Dokumente: PDF, DOC, DOCX
+                  </small>
+                </div>
+
+                <div
+                  class="upload-progress"
+                  id="uploadProgress"
+                  style="display: none"
+                >
+                  <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                  </div>
+                  <p id="progressText">0%</p>
+                </div>
+
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  style="width: 100%"
+                >
+                  📤 Hochladen
+                </button>
+              </form>
+            </div>
+
+            <!-- User Uploads List -->
+            <div class="user-uploads-section" style="margin-top: 3rem">
+              <h3>Meine Uploads</h3>
+              <div class="content-grid" id="userUploadsList">
+                <!-- Wird von JavaScript gefüllt -->
+              </div>
+            </div>
           </div>
         </div>
       </div>

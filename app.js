@@ -1274,3 +1274,351 @@ function showAlert(message, type) {
     }, 5000);
   }
 }
+
+// ============================================
+// >>> GLIEDERUNGSPUNKT 14: UPLOAD MANAGEMENT (NEU)
+// ============================================
+
+// Storage Buckets Configuration
+const STORAGE_BUCKETS = {
+  video: "user-videos",
+  image: "user-images",
+  document: "user-documents",
+};
+
+// Initialize Upload Event Listeners
+function initializeUploadListeners() {
+  const uploadForm = document.getElementById("uploadForm");
+  if (uploadForm) {
+    uploadForm.addEventListener("submit", handleFileUpload);
+  }
+
+  const uploadType = document.getElementById("uploadType");
+  if (uploadType) {
+    uploadType.addEventListener("change", updateFileAccept);
+  }
+}
+
+// Update file input accept attribute based on type
+function updateFileAccept() {
+  const uploadType = document.getElementById("uploadType").value;
+  const fileInput = document.getElementById("uploadFile");
+
+  if (!fileInput) return;
+
+  switch (uploadType) {
+    case "video":
+      fileInput.accept = "video/*";
+      break;
+    case "image":
+      fileInput.accept = "image/*";
+      break;
+    case "document":
+      fileInput.accept = ".pdf,.doc,.docx";
+      break;
+    default:
+      fileInput.accept = "video/*,image/*,.pdf,.doc,.docx";
+  }
+}
+
+// Handle File Upload
+async function handleFileUpload(e) {
+  e.preventDefault();
+
+  if (!currentUser) {
+    showAlert("Bitte melde dich an, um Dateien hochzuladen", "error");
+    return;
+  }
+
+  const uploadType = document.getElementById("uploadType").value;
+  const title = document.getElementById("uploadTitle").value;
+  const description = document.getElementById("uploadDescription").value;
+  const fileInput = document.getElementById("uploadFile");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    showAlert("Bitte wähle eine Datei aus", "error");
+    return;
+  }
+
+  // Validate file size (100MB max)
+  const maxSize = 100 * 1024 * 1024; // 100MB
+  if (file.size > maxSize) {
+    showAlert("Datei ist zu groß. Maximum: 100MB", "error");
+    return;
+  }
+
+  debugLog("Starting upload:", {
+    uploadType,
+    title,
+    fileName: file.name,
+    fileSize: file.size,
+  });
+
+  // Show progress
+  const progressContainer = document.getElementById("uploadProgress");
+  const progressFill = document.getElementById("progressFill");
+  const progressText = document.getElementById("progressText");
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+
+  progressContainer.style.display = "block";
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Wird hochgeladen...";
+
+  try {
+    // Generate unique filename
+    const timestamp = Date.now();
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${currentUser.id}/${timestamp}_${sanitizeFileName(
+      title
+    )}.${fileExt}`;
+
+    // Get the correct bucket
+    const bucket = STORAGE_BUCKETS[uploadType];
+
+    debugLog("Uploading to bucket:", bucket, "filename:", fileName);
+
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+        onUploadProgress: (progress) => {
+          const percent = Math.round((progress.loaded / progress.total) * 100);
+          progressFill.style.width = percent + "%";
+          progressText.textContent = percent + "%";
+        },
+      });
+
+    if (uploadError) {
+      console.error("Upload error:", uploadError);
+      showAlert("Fehler beim Hochladen: " + uploadError.message, "error");
+      return;
+    }
+
+    debugLog("File uploaded successfully:", uploadData);
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(fileName);
+
+    const fileUrl = urlData.publicUrl;
+    debugLog("Public URL:", fileUrl);
+
+    // Create thumbnail URL (use same for now, can be enhanced later)
+    const thumbnailUrl =
+      uploadType === "image"
+        ? fileUrl
+        : "https://ftohghotvfgkoeclmwfv.supabase.co/storage/v1/object/public/images/thumbnails/ChatGPT%20Image%2030.%20Okt.%202025,%2012_46_55.png";
+
+    // Save metadata to database
+    const { data: dbData, error: dbError } = await supabase
+      .from("user_uploads")
+      .insert([
+        {
+          user_id: currentUser.id,
+          type: uploadType,
+          title: title,
+          description: description,
+          file_url: fileUrl,
+          thumbnail_url: thumbnailUrl,
+          file_name: fileName,
+          file_size: file.size,
+          bucket: bucket,
+          required_plan: userSubscription ? userSubscription.plan : "basic",
+        },
+      ])
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error("Database error:", dbError);
+      showAlert(
+        "Fehler beim Speichern der Metadaten: " + dbError.message,
+        "error"
+      );
+      return;
+    }
+
+    debugLog("Metadata saved:", dbData);
+
+    // Success!
+    showAlert("Datei erfolgreich hochgeladen! 🎉", "success");
+
+    // Reset form
+    e.target.reset();
+    progressContainer.style.display = "none";
+    progressFill.style.width = "0%";
+
+    // Reload user uploads
+    loadUserUploads();
+  } catch (error) {
+    console.error("Unexpected upload error:", error);
+    showAlert("Ein unerwarteter Fehler ist aufgetreten", "error");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "📤 Hochladen";
+  }
+}
+
+// Sanitize filename
+function sanitizeFileName(name) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "_")
+    .replace(/_+/g, "_")
+    .substring(0, 50);
+}
+
+// Load User Uploads
+async function loadUserUploads() {
+  if (!currentUser) return;
+
+  const uploadsList = document.getElementById("userUploadsList");
+  if (!uploadsList) return;
+
+  uploadsList.innerHTML =
+    '<p style="text-align: center; color: #999;">Lade Uploads...</p>';
+
+  const { data, error } = await supabase
+    .from("user_uploads")
+    .select("*")
+    .eq("user_id", currentUser.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error loading uploads:", error);
+    uploadsList.innerHTML =
+      '<p style="text-align: center; color: #f44336;">Fehler beim Laden der Uploads</p>';
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    uploadsList.innerHTML =
+      '<p style="text-align: center; color: #999;">Noch keine Uploads vorhanden</p>';
+    return;
+  }
+
+  uploadsList.innerHTML = "";
+
+  data.forEach((upload) => {
+    const item = createUploadItem(upload);
+    uploadsList.appendChild(item);
+  });
+}
+
+// Create Upload Item
+function createUploadItem(upload) {
+  const div = document.createElement("div");
+  div.className = "content-item upload-item";
+
+  const typeIcons = {
+    video: "📹",
+    image: "🖼️",
+    document: "📄",
+  };
+
+  const fileSize = formatFileSize(upload.file_size);
+  const uploadDate = new Date(upload.created_at).toLocaleDateString("de-DE");
+
+  div.innerHTML = `
+    <img src="${upload.thumbnail_url}" alt="${upload.title}">
+    <div class="content-info">
+      <h4>${typeIcons[upload.type]} ${upload.title}</h4>
+      <p>${upload.description}</p>
+      <p style="font-size: 0.85rem; color: #999; margin-top: 0.5rem;">
+        ${fileSize} • ${uploadDate}
+      </p>
+      <br>
+      <a href="${
+        upload.file_url
+      }" target="_blank" class="btn btn-primary" style="display: inline-block; margin-top: 10px; padding: 0.5rem 1rem; text-decoration: none;">
+        Ansehen
+      </a>
+      <button onclick="deleteUpload('${upload.id}', '${upload.bucket}', '${
+    upload.file_name
+  }')" class="delete-upload-btn">
+        🗑️ Löschen
+      </button>
+    </div>
+  `;
+
+  return div;
+}
+
+// Format File Size
+function formatFileSize(bytes) {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+}
+
+// Delete Upload
+async function deleteUpload(uploadId, bucket, fileName) {
+  if (!confirm("Möchtest du diese Datei wirklich löschen?")) {
+    return;
+  }
+
+  debugLog("Deleting upload:", { uploadId, bucket, fileName });
+
+  try {
+    // Delete from storage
+    const { error: storageError } = await supabase.storage
+      .from(bucket)
+      .remove([fileName]);
+
+    if (storageError) {
+      console.error("Storage delete error:", storageError);
+      showAlert(
+        "Fehler beim Löschen der Datei: " + storageError.message,
+        "error"
+      );
+      return;
+    }
+
+    // Delete from database
+    const { error: dbError } = await supabase
+      .from("user_uploads")
+      .delete()
+      .eq("id", uploadId);
+
+    if (dbError) {
+      console.error("Database delete error:", dbError);
+      showAlert(
+        "Fehler beim Löschen der Metadaten: " + dbError.message,
+        "error"
+      );
+      return;
+    }
+
+    showAlert("Datei erfolgreich gelöscht", "success");
+    loadUserUploads();
+  } catch (error) {
+    console.error("Unexpected delete error:", error);
+    showAlert("Ein unerwarteter Fehler ist aufgetreten", "error");
+  }
+}
+
+// Make deleteUpload available globally
+window.deleteUpload = deleteUpload;
+
+// Update the initialization to include upload listeners
+document.addEventListener("DOMContentLoaded", async () => {
+  CookieConsent.init();
+  // ... existing initialization code ...
+  await checkUserSession();
+  initializeEventListeners();
+  initializeUploadListeners(); // ADD THIS LINE
+});
+
+// Update loadContent function to include user uploads
+function loadContent() {
+  loadVideos();
+  loadDocuments();
+  loadImages();
+  loadUserUploads(); // ADD THIS LINE
+}
