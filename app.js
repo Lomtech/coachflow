@@ -2,12 +2,12 @@
 // KONFIGURATION
 // ============================================
 
-// Supabase Konfiguration
-const SUPABASE_URL = "DEIN_SUPABASE_URL"; // Ersetze mit deiner URL
-const SUPABASE_ANON_KEY = "DEIN_SUPABASE_ANON_KEY"; // Ersetze mit deinem Key
+// Supabase Konfiguration (Platzhalter für Build-Script)
+const SUPABASE_URL = "DEIN_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "DEIN_SUPABASE_ANON_KEY";
 
-// Stripe Konfiguration (für Demo)
-const STRIPE_PUBLISHABLE_KEY = "DEIN_STRIPE_KEY"; // Optional
+// Stripe Konfiguration (Platzhalter)
+const STRIPE_PUBLISHABLE_KEY = "DEIN_STRIPE_PUBLISHABLE_KEY";
 
 // Supabase Client initialisieren
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
