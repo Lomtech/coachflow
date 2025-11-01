@@ -6,7 +6,7 @@
   "main": "index.html",
   "scripts": {
     "dev": "netlify dev",
-    "build": "echo 'No build step required'",
+    "build": "node scripts/build.js",
     "deploy": "netlify deploy --prod"
   },
   "keywords": [

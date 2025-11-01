@@ -2,18 +2,43 @@
 # Netlify Configuration for CoachFlow
 
 [build]
-  # Build command (not needed for vanilla JS, but kept for consistency)
-  command = "echo 'No build step required'"
+  # Build command - installs dependencies and runs the build script
+  # The build script injects environment variables into frontend JavaScript files
+  command = "npm ci --prefer-offline --no-audit && node scripts/build.js"
   
-  # Publish directory
-  publish = "."
+  # Publish directory - built files with injected environment variables
+  publish = "dist"
   
-  # Functions directory
-  functions = "netlify/functions"
+  # Functions directory (relative to dist)
+  functions = "dist/netlify/functions"
 
 [build.environment]
-  # Node version
-  NODE_VERSION = "18"
+  # Node version - explicitly set to 18
+  NODE_VERSION = "18.17.0"
+  
+  # NPM configuration to avoid caching issues
+  NPM_FLAGS = "--prefer-offline --no-audit"
+  
+  # Disable npm update check
+  NO_UPDATE_NOTIFIER = "true"
+
+# Build processing configuration
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = false
+  minify = false
+
+[build.processing.js]
+  bundle = false
+  minify = false
+
+[build.processing.html]
+  pretty_urls = false
+
+[build.processing.images]
+  compress = false
 
 # Redirect rules
 [[redirects]]

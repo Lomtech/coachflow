@@ -1,9 +1,10 @@
 
 // CoachFlow Member Portal
 
-const SUPABASE_URL = 'https://ftohghotvfgkoeclmwfv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0b2hnaG90dmZna29lY2xtd2Z2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NzEwNDAsImV4cCI6MjA3NzM0NzA0MH0.UY_RP8g55jzb_9FCCqCO6FtwHWqG4LNGvWRTaA5nqhk';
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_51SNizzBRFwrqh41LoiWKLW7YfhoL4qWBqlsrdMUZLDzB9WRUCB8OZYDJqTL3JAjTklDPkhXhxH2UsV0DxEaBJVk300ShIJPf1H';
+// These placeholders will be replaced with actual environment variables during build
+const SUPABASE_URL = '__SUPABASE_URL__';
+const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
+const STRIPE_PUBLISHABLE_KEY = '__STRIPE_PUBLISHABLE_KEY__';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let stripe = null;

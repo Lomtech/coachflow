@@ -1,12 +1,13 @@
 
 // CoachFlow Landing Page - Stripe Checkout Integration
 
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_51SNizzBRFwrqh41LoiWKLW7YfhoL4qWBqlsrdMUZLDzB9WRUCB8OZYDJqTL3JAjTklDPkhXhxH2UsV0DxEaBJVk300ShIJPf1H';
+// These placeholders will be replaced with actual environment variables during build
+const STRIPE_PUBLISHABLE_KEY = '__STRIPE_PUBLISHABLE_KEY__';
 
 const STRIPE_PRICES = {
-  basic: 'price_1SNj2QBRFwrqh41La7LJA7zs',
-  premium: 'price_1SNj2gBRFwrqh41LnER4xIvQ',
-  elite: 'price_1SNj2uBRFwrqh41Lbl95sqht'
+  basic: '__STRIPE_PRICE_BASIC__',
+  premium: '__STRIPE_PRICE_PREMIUM__',
+  elite: '__STRIPE_PRICE_ELITE__'
 };
 
 let stripe = null;
