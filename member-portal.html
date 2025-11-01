@@ -1,126 +1,111 @@
+
 <!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Membership Portal - CoachFlow</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://js.stripe.com/v3/"></script>
-  </head>
-  <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-      <div class="container">
-        <div class="nav-brand">
-          <h1 id="coachNameTitle">Laden...</h1>
-        </div>
-        <div class="nav-links">
-          <button id="loginBtn" class="btn btn-secondary">Login</button>
-          <button
-            id="logoutBtn"
-            class="btn btn-secondary"
-            style="display: none"
-          >
-            Logout
-          </button>
-        </div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Membership Portal - CoachFlow</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-brand">
+        <h1 id="coachNameTitle">Laden...</h1>
       </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="portal-container">
-      <div class="container">
-        <!-- Not Logged In - Show Tier Info & Login -->
-        <div id="guestView">
-          <section class="portal-section">
-            <h2>Willkommen!</h2>
-            <p>Werde Mitglied und erhalte Zugriff auf exklusive Inhalte.</p>
-
-            <!-- Tier Information -->
-            <div id="tierInfo" class="card">
-              <h3 id="tierName">Laden...</h3>
-              <p class="tier-price" id="tierPrice">Laden...</p>
-              <p id="tierDescription">Laden...</p>
-              <button id="subscribeBtn" class="btn btn-primary btn-lg">
-                Jetzt Mitglied werden
-              </button>
-            </div>
-          </section>
-        </div>
-
-        <!-- Logged In - Show Content -->
-        <div id="memberView" style="display: none">
-          <section class="portal-section">
-            <h2>Deine Inhalte</h2>
-
-            <!-- Content Tabs -->
-            <div class="tabs">
-              <button class="tab-btn active" data-tab="videos">Videos</button>
-              <button class="tab-btn" data-tab="documents">Dokumente</button>
-              <button class="tab-btn" data-tab="images">Bilder</button>
-            </div>
-
-            <!-- Content Display -->
-            <div id="contentDisplay" class="content-grid">
-              <!-- Content will be loaded here -->
-            </div>
-          </section>
-
-          <!-- Subscription Info -->
-          <section class="portal-section">
-            <h3>Deine Mitgliedschaft</h3>
-            <div class="card">
-              <p><strong>Plan:</strong> <span id="memberTierName"></span></p>
-              <p><strong>Status:</strong> <span id="memberStatus"></span></p>
-              <p>
-                <strong>Nächste Zahlung:</strong> <span id="nextPayment"></span>
-              </p>
-              <button id="cancelBtn" class="btn btn-danger">
-                Mitgliedschaft kündigen
-              </button>
-            </div>
-          </section>
-        </div>
+      <div class="nav-links">
+        <button id="loginBtn" class="btn btn-secondary">Login</button>
+        <button id="logoutBtn" class="btn btn-secondary" style="display: none;">Logout</button>
       </div>
     </div>
+  </nav>
 
-    <!-- Login Modal -->
-    <div id="loginModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Login / Registrierung</h2>
-
-        <form id="authForm">
-          <div class="form-group">
-            <label for="authEmail">E-Mail</label>
-            <input type="email" id="authEmail" required />
+  <!-- Main Content -->
+  <div class="portal-container">
+    <div class="container">
+      
+      <!-- Not Logged In - Show Tier Info & Login -->
+      <div id="guestView">
+        <section class="portal-section">
+          <h2>Willkommen!</h2>
+          <p>Werde Mitglied und erhalte Zugriff auf exklusive Inhalte.</p>
+          
+          <!-- Tier Information -->
+          <div id="tierInfo" class="card">
+            <h3 id="tierName">Laden...</h3>
+            <p class="tier-price" id="tierPrice">Laden...</p>
+            <p id="tierDescription">Laden...</p>
+            <button id="subscribeBtn" class="btn btn-primary btn-lg">Jetzt Mitglied werden</button>
           </div>
-          <div class="form-group">
-            <label for="authPassword">Passwort</label>
-            <input type="password" id="authPassword" required />
+        </section>
+      </div>
+
+      <!-- Logged In - Show Content -->
+      <div id="memberView" style="display: none;">
+        <section class="portal-section">
+          <h2>Deine Inhalte</h2>
+          
+          <!-- Content Tabs -->
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="videos">Videos</button>
+            <button class="tab-btn" data-tab="documents">Dokumente</button>
+            <button class="tab-btn" data-tab="images">Bilder</button>
           </div>
-          <button type="submit" class="btn btn-primary">Anmelden</button>
-          <button type="button" id="registerBtn" class="btn btn-secondary">
-            Registrieren
-          </button>
-        </form>
-      </div>
-    </div>
 
-    <!-- Video Player Modal -->
-    <div id="videoModal" class="modal">
-      <div class="modal-content modal-large">
-        <span class="close">&times;</span>
-        <h2 id="videoTitle"></h2>
-        <video
-          id="videoPlayer"
-          controls
-          style="width: 100%; max-height: 70vh"
-        ></video>
-      </div>
-    </div>
+          <!-- Content Display -->
+          <div id="contentDisplay" class="content-grid">
+            <!-- Content will be loaded here -->
+          </div>
+        </section>
 
-    <script src="member-portal.js"></script>
-  </body>
+        <!-- Subscription Info -->
+        <section class="portal-section">
+          <h3>Deine Mitgliedschaft</h3>
+          <div class="card">
+            <p><strong>Plan:</strong> <span id="memberTierName"></span></p>
+            <p><strong>Status:</strong> <span id="memberStatus"></span></p>
+            <p><strong>Nächste Zahlung:</strong> <span id="nextPayment"></span></p>
+            <button id="cancelBtn" class="btn btn-danger">Mitgliedschaft kündigen</button>
+          </div>
+        </section>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Login / Registrierung</h2>
+      
+      <form id="authForm">
+        <div class="form-group">
+          <label for="authEmail">E-Mail</label>
+          <input type="email" id="authEmail" required>
+        </div>
+        <div class="form-group">
+          <label for="authPassword">Passwort</label>
+          <input type="password" id="authPassword" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Anmelden</button>
+        <button type="button" id="registerBtn" class="btn btn-secondary">Registrieren</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Video Player Modal -->
+  <div id="videoModal" class="modal">
+    <div class="modal-content modal-large">
+      <span class="close">&times;</span>
+      <h2 id="videoTitle"></h2>
+      <video id="videoPlayer" controls style="width: 100%; max-height: 70vh;"></video>
+    </div>
+  </div>
+
+  <script src="member-portal.js"></script>
+</body>
 </html>
