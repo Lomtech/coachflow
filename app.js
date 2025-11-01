@@ -8,6 +8,9 @@ const SUPABASE_ANON_KEY = "DEIN_SUPABASE_ANON_KEY";
 
 // Stripe Konfiguration (Platzhalter)
 const STRIPE_PUBLISHABLE_KEY = "DEIN_STRIPE_PUBLISHABLE_KEY";
+const STRIPE_PRICE_BASIC = "price_BASIC_ID";
+const STRIPE_PRICE_PREMIUM = "price_PREMIUM_ID";
+const STRIPE_PRICE_ELITE = "price_ELITE_ID";
 
 // Supabase Client initialisieren
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
