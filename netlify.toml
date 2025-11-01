@@ -18,6 +18,11 @@
   publish = "dist"
   command = "node build.js"
 
+[headers]]
+for = "/*"
+[headers.values]
+Permissions-Policy = "payment=(self)"
+
 # ============================================
 # 2. REDIRECTS
 # >>> GLIEDERUNGSPUNKT 2: REDIRECTS
