@@ -1,118 +1,147 @@
-
 <!DOCTYPE html>
 <html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Coach Login - CoachFlow</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-  <!-- Navigation -->
-  <nav class="navbar">
-    <div class="container">
-      <div class="nav-brand">
-        <a href="index.html"><h1>CoachFlow</h1></a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Coach Login - CoachFlow</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="container">
+        <div class="nav-brand">
+          <a href="index.html"><h1>CoachFlow</h1></a>
+        </div>
+        <div class="nav-links">
+          <a href="index.html">Startseite</a>
+        </div>
       </div>
-      <div class="nav-links">
-        <a href="index.html">Startseite</a>
-      </div>
-    </div>
-  </nav>
+    </nav>
 
-  <!-- Login Section -->
-  <div class="portal-container">
-    <div class="container">
-      <div style="max-width: 500px; margin: 0 auto;">
-        <h1 class="text-center">Coach Login</h1>
-        <p class="text-center" style="margin-bottom: 2rem; color: var(--mid-gray);">
-          Melde dich an, um auf dein Dashboard zuzugreifen
-        </p>
-
-        <div class="card">
-          <form id="loginForm">
-            <div class="form-group">
-              <label for="email">E-Mail</label>
-              <input type="email" id="email" required autocomplete="email">
-            </div>
-            <div class="form-group">
-              <label for="password">Passwort</label>
-              <input type="password" id="password" required autocomplete="current-password">
-            </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Anmelden</button>
-          </form>
-
-          <div id="errorMessage" style="display: none; margin-top: 1rem;" class="alert alert-danger"></div>
-
-          <p style="margin-top: 1.5rem; text-align: center; color: var(--mid-gray);">
-            Noch kein Account? 
-            <a href="index.html#pricing">Jetzt registrieren</a>
+    <!-- Login Section -->
+    <div class="portal-container">
+      <div class="container">
+        <div style="max-width: 500px; margin: 0 auto">
+          <h1 class="text-center">Coach Login</h1>
+          <p
+            class="text-center"
+            style="margin-bottom: 2rem; color: var(--mid-gray)"
+          >
+            Melde dich an, um auf dein Dashboard zuzugreifen
           </p>
+
+          <div class="card">
+            <form id="loginForm">
+              <div class="form-group">
+                <label for="email">E-Mail</label>
+                <input type="email" id="email" required autocomplete="email" />
+              </div>
+              <div class="form-group">
+                <label for="password">Passwort</label>
+                <input
+                  type="password"
+                  id="password"
+                  required
+                  autocomplete="current-password"
+                />
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%">
+                Anmelden
+              </button>
+            </form>
+
+            <div
+              id="errorMessage"
+              style="display: none; margin-top: 1rem"
+              class="alert alert-danger"
+            ></div>
+
+            <p
+              style="
+                margin-top: 1.5rem;
+                text-align: center;
+                color: var(--mid-gray);
+              "
+            >
+              Noch kein Account?
+              <a href="index.html#pricing">Jetzt registrieren</a>
+            </p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    const SUPABASE_URL = 'https://ftohghotvfgkoeclmwfv.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0b2hnaG90dmZna29lY2xtd2Z2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NzEwNDAsImV4cCI6MjA3NzM0NzA0MH0.UY_RP8g55jzb_9FCCqCO6FtwHWqG4LNGvWRTaA5nqhk';
+    <script>
+      const SUPABASE_URL = "https://ftohghotvfgkoeclmwfv.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0b2hnaG90dmZna29lY2xtd2Z2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NzEwNDAsImV4cCI6MjA3NzM0NzA0MH0.UY_RP8g55jzb_9FCCqCO6FtwHWqG4LNGvWRTaA5nqhk";
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const supabase = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
 
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const errorDiv = document.getElementById('errorMessage');
-      const submitBtn = e.target.querySelector('button[type="submit"]');
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
 
-      // Reset error
-      errorDiv.style.display = 'none';
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Wird angemeldet...';
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const errorDiv = document.getElementById("errorMessage");
+          const submitBtn = e.target.querySelector('button[type="submit"]');
 
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
+          // Reset error
+          errorDiv.style.display = "none";
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Wird angemeldet...";
+
+          try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
+
+            if (error) {
+              throw error;
+            }
+
+            // Check if user is a coach
+            const { data: coachData, error: coachError } = await supabase
+              .from("coaches")
+              .select("id")
+              .eq("id", data.user.id)
+              .single();
+
+            if (coachError || !coachData) {
+              await supabase.auth.signOut();
+              throw new Error(
+                "Dieser Account ist kein Coach-Account. Bitte verwende den Membership-Portal-Link deines Coaches."
+              );
+            }
+
+            // Redirect to dashboard
+            window.location.href = "dashboard.html";
+          } catch (error) {
+            console.error("Login error:", error);
+            errorDiv.textContent = error.message;
+            errorDiv.style.display = "block";
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Anmelden";
+          }
         });
 
-        if (error) {
-          throw error;
+      // Check if already logged in
+      (async () => {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session) {
+          window.location.href = "dashboard.html";
         }
-
-        // Check if user is a coach
-        const { data: coachData, error: coachError } = await supabase
-          .from('coaches')
-          .select('id')
-          .eq('id', data.user.id)
-          .single();
-
-        if (coachError || !coachData) {
-          await supabase.auth.signOut();
-          throw new Error('Dieser Account ist kein Coach-Account. Bitte verwende den Membership-Portal-Link deines Coaches.');
-        }
-
-        // Redirect to dashboard
-        window.location.href = 'dashboard.html';
-      } catch (error) {
-        console.error('Login error:', error);
-        errorDiv.textContent = error.message;
-        errorDiv.style.display = 'block';
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Anmelden';
-      }
-    });
-
-    // Check if already logged in
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        window.location.href = 'dashboard.html';
-      }
-    })();
-  </script>
-</body>
+      })();
+    </script>
+  </body>
 </html>
