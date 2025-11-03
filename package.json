@@ -1,31 +1,8 @@
 {
-  "name": "fitticoach-dsgvo",
-  "version": "2.0.0",
-  "description": "DSGVO-konforme Personal Training Website mit Supabase & Stripe",
-  "main": "build.js",
+  "name": "bjj-community",
+  "version": "1.0.0",
   "scripts": {
-    "build": "node build.js",
-    "dev": "npx serve .",
-    "serve:dist": "npx serve dist",
-    "clean": "rm -rf dist",
-    "rebuild": "npm run clean && npm run build"
-  },
-  "keywords": [
-    "fitness",
-    "training",
-    "membership",
-    "dsgvo",
-    "supabase",
-    "stripe"
-  ],
-  "author": "FittiCoach",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/fitticoach.git"
-  },
-  "engines": {
-    "node": ">=14.0.0"
-  },
-  "devDependencies": {}
+    "build": "node build.js"
+  }
 }
+
