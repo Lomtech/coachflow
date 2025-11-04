@@ -2,636 +2,543 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BJJ Community Platform</title>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="SaaS Platform für Coaches - Erstelle deine eigene Content-Plattform mit Paywall" />
+    
+    <!-- Cache-Control -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
+    <title>CoachPlatform - Deine Content SaaS Lösung</title>
     <link rel="stylesheet" href="styles.css" />
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
   </head>
   <body>
-    <div class="container">
-      <header>
-        <div class="header-top">
-          <h1>🥋 BJJ Community</h1>
-          <div class="auth-section" id="auth-section"></div>
+    <!-- Cookie Consent Banner -->
+    <div id="cookieConsent" class="cookie-banner" style="display: none">
+      <div class="cookie-content">
+        <div class="cookie-text">
+          <h3>🍪 Cookie-Einstellungen</h3>
+          <p>
+            Wir verwenden Cookies für die bestmögliche Erfahrung.
+            <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a> |
+            <a href="cookies.html" target="_blank">Cookie-Richtlinie</a>
+          </p>
         </div>
+        <div class="cookie-buttons">
+          <button id="acceptAll" class="btn btn-primary">Alle akzeptieren</button>
+          <button id="acceptEssential" class="btn btn-secondary">Nur Notwendige</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+      <div class="container">
+        <a href="/" class="logo">🚀 CoachPlatform</a>
+        <div class="nav-buttons">
+          <button id="loginBtn" class="btn btn-primary">Anmelden</button>
+          <button id="logoutBtn" class="btn btn-secondary" style="display: none">Abmelden</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ========================================= -->
+    <!-- LANDING PAGE (nicht eingeloggt) -->
+    <!-- ========================================= -->
+    <div id="landingPage">
+      <!-- Hero Section -->
+      <section class="hero">
+        <div class="container">
+          <h1>Deine eigene Content-Plattform in Minuten</h1>
+          <p>
+            Verkaufe deine Videos, Dokumente und Bilder mit automatischer Paywall.
+            Keine technischen Kenntnisse erforderlich. Starte noch heute!
+          </p>
+          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+            <button id="startCoachBtn" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem">
+              Als Coach starten →
+            </button>
+            <button id="findCoachBtn" class="btn btn-secondary" style="font-size: 1.1rem; padding: 1rem 2rem">
+              Coach finden
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section style="padding: 4rem 1rem; background: white;">
+        <div class="container">
+          <h2 class="text-center" style="margin-bottom: 3rem;">Alles was du brauchst</h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">📹</div>
+              <h3>Video-Hosting</h3>
+              <p>Lade Videos hoch und teile sie mit deinen Kunden</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">📄</div>
+              <h3>Dokumente & PDFs</h3>
+              <p>Teile Trainings pläne, E-Books und mehr</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🖼️</div>
+              <h3>Bilder & Grafiken</h3>
+              <p>Übungskataloge, Infografiken und vieles mehr</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">💳</div>
+              <h3>Automatische Paywall</h3>
+              <p>Stripe-Integration für sichere Zahlungen</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">📊</div>
+              <h3>Analytics Dashboard</h3>
+              <p>Verfolge Views, Einnahmen und Kunden</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🎨</div>
+              <h3>Eigene Landing Page</h3>
+              <p>Professionelle Seite mit deinem Branding</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing Section für COACHES -->
+      <section id="coachPricing">
+        <div class="container">
+          <h2 class="text-center">Wähle deinen Coach-Plan</h2>
+          <p class="text-center" style="color: #999; margin-bottom: 3rem">
+            Starte als Coach und verkaufe deine Inhalte • 30 Tage Geld-zurück-Garantie
+          </p>
+
+          <div class="pricing-cards">
+            <!-- Basic Plan -->
+            <div class="pricing-card">
+              <h3>Basic</h3>
+              <div class="price">€29<span>/Monat</span></div>
+              <ul class="features">
+                <li>10 Videos</li>
+                <li>5 Dokumente</li>
+                <li>20 Bilder</li>
+                <li>5 GB Storage</li>
+                <li>Bis zu 50 Kunden</li>
+                <li>E-Mail Support</li>
+              </ul>
+              <button class="subscribe-btn" data-plan="basic" data-user-type="coach">
+                Als Coach starten
+              </button>
+            </div>
+
+            <!-- Premium Plan -->
+            <div class="pricing-card featured">
+              <div class="featured-badge">⭐ BELIEBT</div>
+              <h3>Premium</h3>
+              <div class="price">€59<span>/Monat</span></div>
+              <ul class="features">
+                <li>50 Videos</li>
+                <li>20 Dokumente</li>
+                <li>100 Bilder</li>
+                <li>25 GB Storage</li>
+                <li>Bis zu 200 Kunden</li>
+                <li>Custom Domain</li>
+                <li>Analytics Dashboard</li>
+                <li>Vorrang-Support</li>
+              </ul>
+              <button class="subscribe-btn" data-plan="premium" data-user-type="coach">
+                Premium wählen
+              </button>
+            </div>
+
+            <!-- Elite Plan -->
+            <div class="pricing-card">
+              <h3>Elite</h3>
+              <div class="price">€99<span>/Monat</span></div>
+              <ul class="features">
+                <li>Unbegrenzte Videos</li>
+                <li>Unbegrenzte Dokumente</li>
+                <li>Unbegrenzte Bilder</li>
+                <li>100 GB Storage</li>
+                <li>Unbegrenzte Kunden</li>
+                <li>Custom Domain & Branding</li>
+                <li>Advanced Analytics</li>
+                <li>24/7 Premium Support</li>
+                <li>White-Label Option</li>
+              </ul>
+              <button class="subscribe-btn" data-plan="elite" data-user-type="coach">
+                Elite wählen
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- COACH DASHBOARD (eingeloggt als Coach) -->
+    <!-- ========================================= -->
+    <div id="coachDashboard" style="display: none">
+      <div class="container" style="padding: 2rem 1rem;">
+        <!-- Coach Info Header -->
+        <div class="dashboard-header">
+          <div class="user-info" id="coachInfo">
+            <!-- Wird von JavaScript gefüllt -->
+          </div>
+        </div>
+
+        <!-- Dashboard Tabs -->
         <div class="tabs">
-          <button class="tab-btn active" onclick="switchTab('dashboard', this)">
-            Dashboard
-          </button>
-          <button class="tab-btn" onclick="switchTab('profile', this)">
-            Mein Profil
-          </button>
-          <button class="tab-btn" onclick="switchTab('athletes', this)">
-            Athleten
-          </button>
-          <button class="tab-btn" onclick="switchTab('gyms', this)">
-            Gyms
-          </button>
-          <button class="tab-btn" onclick="switchTab('openmats', this)">
-            Open Mats
-          </button>
-          <button class="tab-btn" onclick="switchTab('friends', this)">
-            Freunde
-            <span
-              id="friend-requests-badge"
-              class="notification-badge"
-              style="display: none"
-            ></span>
-          </button>
-          <button class="tab-btn" onclick="switchTab('messages', this)">
-            Nachrichten
-            <span
-              id="messages-badge"
-              class="notification-badge"
-              style="display: none"
-            ></span>
-          </button>
-          <button class="tab-btn" onclick="switchTab('map', this)">
-            Karte
-          </button>
+          <button class="tab-btn active" data-tab="overview">📊 Übersicht</button>
+          <button class="tab-btn" data-tab="upload">⬆️ Upload</button>
+          <button class="tab-btn" data-tab="content">📚 Mein Content</button>
+          <button class="tab-btn" data-tab="customers">👥 Kunden</button>
+          <button class="tab-btn" data-tab="settings">⚙️ Einstellungen</button>
         </div>
-      </header>
 
-      <!-- Welcome Screen für nicht-angemeldete User -->
-      <div id="welcome-screen" class="tab-content">
-        <div style="text-align: center; padding: 60px 20px">
-          <h2 style="font-size: 3em; margin-bottom: 20px">
-            Willkommen bei der BJJ Community! 🥋
-          </h2>
-          <p style="font-size: 1.3em; margin-bottom: 30px; color: #666">
-            Entdecke Gyms, vernetze dich mit Athleten und finde Open Mats in
-            deiner Nähe.
-          </p>
-          <div
-            style="
-              display: flex;
-              gap: 20px;
-              justify-content: center;
-              flex-wrap: wrap;
-            "
-          >
-            <button
-              class="btn"
-              onclick="openAuthModal('signup')"
-              style="font-size: 1.2em; padding: 15px 40px"
-            >
-              Jetzt registrieren
-            </button>
-            <button
-              class="btn btn-secondary"
-              onclick="openAuthModal('login')"
-              style="font-size: 1.2em; padding: 15px 40px"
-            >
-              Anmelden
-            </button>
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h4>Aktive Kunden</h4>
+              <div class="stat-number" id="totalCustomers">0</div>
+            </div>
+            <div class="stat-card">
+              <h4>Gesamt Content</h4>
+              <div class="stat-number" id="totalContent">0</div>
+            </div>
+            <div class="stat-card">
+              <h4>Gesamt Views</h4>
+              <div class="stat-number" id="totalViews">0</div>
+            </div>
+            <div class="stat-card">
+              <h4>Monatlicher Umsatz</h4>
+              <div class="stat-number" id="monthlyRevenue">€0</div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div id="dashboard-tab" class="tab-content">
-        <h2>📊 Dashboard</h2>
-        <div class="stats-grid" id="stats-grid"></div>
-        <h3>Neueste Aktivitäten</h3>
-        <div id="recent-activities"></div>
-      </div>
-
-      <!-- NEUER TAB: Mein Profil -->
-      <div id="profile-tab" class="tab-content">
-        <h2>👤 Mein Profil</h2>
-        <div id="profile-type-selector">
-          <p style="margin-bottom: 20px">
-            Du hast noch kein Profil. Was möchtest du erstellen?
-          </p>
-          <div style="display: flex; gap: 20px; flex-wrap: wrap">
-            <button
-              class="btn"
-              onclick="showProfileForm('athlete')"
-              style="flex: 1"
-            >
-              🥋 Athleten-Profil
-            </button>
-            <button
-              class="btn btn-secondary"
-              onclick="showProfileForm('gym')"
-              style="flex: 1"
-            >
-              🏋️ Gym-Profil
-            </button>
+          <!-- Chart/weitere Stats hier -->
+          <div style="margin-top: 2rem;">
+            <h3>Kunden nach Plan</h3>
+            <div id="customersByPlan"></div>
           </div>
         </div>
 
-        <!-- Athleten-Formular -->
-        <div id="athlete-profile-form" style="display: none">
-          <h3 id="athlete-form-title">Athleten-Profil anlegen</h3>
-          <form id="athlete-form">
-            <input type="hidden" name="athlete_id" id="athlete-id" />
-            <div class="form-group">
-              <label>Name *</label>
-              <input type="text" name="name" id="athlete-name" required />
-            </div>
-            <div class="form-group">
-              <label>Bio</label>
-              <textarea
-                name="bio"
-                id="athlete-bio"
-                rows="3"
-                placeholder="Erzähle etwas über dich..."
-              ></textarea>
-            </div>
-            <div class="form-row">
+        <!-- Upload Tab -->
+        <div id="upload" class="tab-content">
+          <div class="upload-section">
+            <h2>Neuen Content hochladen</h2>
+            
+            <form id="uploadForm">
               <div class="form-group">
-                <label>Alter</label>
-                <input
-                  type="number"
-                  name="age"
-                  id="athlete-age"
-                  min="1"
-                  max="120"
-                />
+                <label>Content-Typ</label>
+                <select id="uploadType" required>
+                  <option value="">-- Bitte wählen --</option>
+                  <option value="video">📹 Video</option>
+                  <option value="document">📄 Dokument</option>
+                  <option value="image">🖼️ Bild</option>
+                </select>
               </div>
-              <div class="form-group">
-                <label>Gewicht (kg)</label>
-                <input
-                  type="number"
-                  name="weight"
-                  id="athlete-weight"
-                  step="0.1"
-                />
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Gürtelgrad *</label>
-              <select name="belt_rank" id="athlete-belt" required>
-                <option value="">Bitte wählen</option>
-                <option value="weiß">Weiß</option>
-                <option value="blau">Blau</option>
-                <option value="lila">Lila</option>
-                <option value="braun">Braun</option>
-                <option value="schwarz">Schwarz</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Gym Zugehörigkeit</label>
-              <select name="gym_id" id="athlete-gym-select">
-                <option value="">Kein Gym zugeordnet</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Profilbild</label>
-              <input
-                type="file"
-                name="image"
-                id="athlete-image"
-                accept="image/*"
-              />
-              <div id="current-image-preview"></div>
-            </div>
-            <div style="display: flex; gap: 10px">
-              <button type="submit" id="athlete-submit-btn" class="btn">
-                Profil anlegen
-              </button>
-              <button
-                type="button"
-                class="btn btn-secondary"
-                onclick="cancelProfileEdit()"
-              >
-                Abbrechen
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Gym-Formular -->
-        <div id="gym-profile-form" style="display: none">
-          <h3 id="gym-form-title">Gym-Profil anlegen</h3>
-          <form id="gym-form">
-            <input type="hidden" name="gym_id" id="gym-id" />
-            <div class="form-group">
-              <label>Gym Name *</label>
-              <input type="text" name="name" id="gym-name" required />
-            </div>
-            <div class="form-group">
-              <label>Beschreibung</label>
-              <textarea
-                name="description"
-                id="gym-description"
-                rows="3"
-                placeholder="Beschreibe dein Gym..."
-              ></textarea>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>E-Mail</label>
-                <input type="email" name="email" id="gym-email" />
-              </div>
-              <div class="form-group">
-                <label>Telefon</label>
-                <input type="tel" name="phone" id="gym-phone" />
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Website</label>
-              <input
-                type="url"
-                name="website"
-                id="gym-website"
-                placeholder="https://..."
-              />
-            </div>
-            <div class="form-group">
-              <label>Straße & Hausnummer *</label>
-              <input
-                type="text"
-                name="street"
-                id="gym-street"
-                required
-                placeholder="z.B. Hauptstraße 123"
-              />
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Postleitzahl *</label>
-                <input
-                  type="text"
-                  name="postal_code"
-                  id="gym-postal"
-                  required
-                  placeholder="z.B. 80331"
-                />
-              </div>
-              <div class="form-group">
-                <label>Stadt *</label>
-                <input
-                  type="text"
-                  name="city"
-                  id="gym-city"
-                  required
-                  placeholder="z.B. München"
-                />
-              </div>
-            </div>
-            <div id="geocoding-status" class="geocoding-status"></div>
-            <div class="form-group">
-              <label>Gym Bild</label>
-              <input type="file" name="image" id="gym-image" accept="image/*" />
-              <div id="gym-image-preview"></div>
-            </div>
-            <div style="display: flex; gap: 10px">
-              <button type="submit" id="gym-submit-btn" class="btn">
-                Gym anlegen
-              </button>
-              <button
-                type="button"
-                class="btn btn-secondary"
-                onclick="cancelProfileEdit()"
-              >
-                Abbrechen
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Anzeige des eigenen Profils -->
-        <div id="my-profile-display" style="display: none"></div>
-      </div>
-
-      <div id="athletes-tab" class="tab-content">
-        <div class="search-filter">
-          <h3>🔍 Athleten suchen</h3>
-          <div class="search-row">
-            <div class="form-group">
-              <input
-                type="text"
-                id="search-athlete"
-                placeholder="Name, Bio, Gym, Stadt, Gürtelgrad..."
-                onkeypress="if(event.key === 'Enter') { event.preventDefault(); filterAthletes(); }"
-              />
-            </div>
-            <div class="form-group">
-              <select id="filter-belt">
-                <option value="">Alle Gürtelgrade</option>
-                <option value="weiß">Weiß</option>
-                <option value="blau">Blau</option>
-                <option value="lila">Lila</option>
-                <option value="braun">Braun</option>
-                <option value="schwarz">Schwarz</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <select id="filter-gym">
-                <option value="">Alle Gyms</option>
-              </select>
-            </div>
-            <button onclick="filterAthletes()" class="btn btn-small">
-              Filtern
-            </button>
-          </div>
-        </div>
-
-        <h3>Athleten</h3>
-        <div id="athletes-list" class="profiles-grid"></div>
-      </div>
-
-      <!-- GYMS TAB - MIT NEUEM ERSTELLUNGS-FORMULAR -->
-      <div id="gyms-tab" class="tab-content">
-        <h2>🏋️ Gyms</h2>
-
-        <!-- NEU: Button zum Erstellen eines neuen Gyms -->
-        <div style="margin-bottom: 20px">
-          <button class="btn" onclick="showCreateGymForm()" id="create-gym-btn">
-            ➕ Neues Gym erstellen
-          </button>
-        </div>
-
-        <!-- NEU: Gym-Erstellungs-Formular (initial versteckt) -->
-        <div id="gym-creation-form" style="display: none; margin-bottom: 30px">
-          <div class="profile-card">
-            <h3 id="gym-creation-title">Neues Gym erstellen</h3>
-            <form
-              id="gym-creation-form-element"
-              onsubmit="submitGymCreationForm(event); return false;"
-            >
-              <input type="hidden" id="gym-edit-id" name="gym_id" />
 
               <div class="form-group">
-                <label>Gym Name *</label>
-                <input type="text" id="gym-create-name" name="name" required />
+                <label>Titel</label>
+                <input type="text" id="uploadTitle" required />
               </div>
 
               <div class="form-group">
                 <label>Beschreibung</label>
-                <textarea
-                  id="gym-create-description"
-                  name="description"
-                  rows="4"
-                  placeholder="Beschreibe dein Gym..."
-                ></textarea>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label>E-Mail</label>
-                  <input type="email" id="gym-create-email" name="email" />
-                </div>
-                <div class="form-group">
-                  <label>Telefon</label>
-                  <input type="tel" id="gym-create-phone" name="phone" />
-                </div>
+                <textarea id="uploadDescription" rows="4"></textarea>
               </div>
 
               <div class="form-group">
-                <label>Website</label>
-                <input
-                  type="url"
-                  id="gym-create-website"
-                  name="website"
-                  placeholder="https://..."
-                />
+                <label>Erforderlicher Plan</label>
+                <select id="uploadPlan" required>
+                  <option value="basic">Basic</option>
+                  <option value="premium">Premium</option>
+                  <option value="elite">Elite</option>
+                </select>
               </div>
 
               <div class="form-group">
-                <label>Straße & Hausnummer *</label>
-                <input
-                  type="text"
-                  id="gym-create-street"
-                  name="street"
-                  required
-                  placeholder="z.B. Hauptstraße 123"
-                />
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label>PLZ *</label>
-                  <input
-                    type="text"
-                    id="gym-create-postal"
-                    name="postal_code"
-                    required
-                    placeholder="z.B. 80331"
-                  />
-                </div>
-                <div class="form-group">
-                  <label>Stadt *</label>
-                  <input
-                    type="text"
-                    id="gym-create-city"
-                    name="city"
-                    required
-                    placeholder="z.B. München"
-                  />
+                <label>Datei hochladen</label>
+                <div class="file-upload-area" id="fileUploadArea">
+                  <input type="file" id="fileInput" accept="*/*" hidden />
+                  <div class="upload-placeholder">
+                    <p>📁 Klicke oder ziehe eine Datei hierher</p>
+                    <p style="font-size: 0.9em; color: #999;">Max. 500 MB</p>
+                  </div>
+                  <div class="upload-progress" style="display: none;">
+                    <div class="progress-bar">
+                      <div class="progress-fill" id="uploadProgress"></div>
+                    </div>
+                    <p id="uploadStatus">Hochladen...</p>
+                  </div>
                 </div>
               </div>
 
-              <div class="form-group">
-                <label>Bild</label>
-                <input
-                  type="file"
-                  id="gym-create-image"
-                  name="image"
-                  accept="image/*"
-                />
-                <div id="gym-create-image-preview"></div>
-              </div>
-
-              <div id="gym-geocoding-status" class="geocoding-status"></div>
-
-              <div style="display: flex; gap: 10px; margin-top: 20px">
-                <button type="submit" class="btn" id="gym-create-submit-btn">
-                  Gym erstellen
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-danger"
-                  onclick="cancelGymCreation()"
-                >
-                  Abbrechen
-                </button>
-              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;">
+                Content hochladen
+              </button>
             </form>
           </div>
         </div>
 
-        <!-- Bestehende Such- und Filterfunktionen -->
-        <div class="search-filter">
-          <h3>🔍 Gyms suchen</h3>
-          <div class="search-row">
-            <div class="form-group">
-              <input
-                type="text"
-                id="search-gym"
-                placeholder="Name, Stadt, Straße, PLZ, Beschreibung..."
-                onkeypress="if(event.key === 'Enter') { event.preventDefault(); filterGyms(); }"
-              />
-            </div>
-            <div></div>
-            <div></div>
-            <button onclick="filterGyms()" class="btn btn-small">
-              Filtern
+        <!-- Content Management Tab -->
+        <div id="content" class="tab-content">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>Mein Content</h2>
+            <select id="filterContentType">
+              <option value="all">Alle Typen</option>
+              <option value="video">Videos</option>
+              <option value="document">Dokumente</option>
+              <option value="image">Bilder</option>
+            </select>
+          </div>
+          <div class="content-grid" id="coachContentList">
+            <!-- Wird von JavaScript gefüllt -->
+          </div>
+        </div>
+
+        <!-- Customers Tab -->
+        <div id="customers" class="tab-content">
+          <h2>Meine Kunden</h2>
+          <div class="customers-list" id="customersList">
+            <!-- Wird von JavaScript gefüllt -->
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+          <h2>Einstellungen</h2>
+          
+          <div class="settings-section">
+            <h3>Profil-Einstellungen</h3>
+            <form id="profileSettingsForm">
+              <div class="form-group">
+                <label>Benutzername (URL)</label>
+                <input type="text" id="coachUsername" placeholder="dein-name" />
+                <p style="font-size: 0.9em; color: #999;">
+                  Deine URL: <strong id="coachUrl">-</strong>
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="coachName" />
+              </div>
+
+              <div class="form-group">
+                <label>Bio</label>
+                <textarea id="coachBio" rows="4"></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                Profil speichern
+              </button>
+            </form>
+          </div>
+
+          <div class="settings-section" style="margin-top: 3rem;">
+            <h3>Abo verwalten</h3>
+            <button class="btn btn-secondary" onclick="showManagePlanSection()">
+              Plan ändern
             </button>
           </div>
         </div>
-
-        <h3>Gyms</h3>
-        <div id="gyms-list" class="profiles-grid"></div>
-      </div>
-
-      <!-- OPEN MATS TAB - MIT ANGEPASSTEM FORMULAR -->
-      <div id="openmats-tab" class="tab-content">
-        <h2>📅 Open Mat Events</h2>
-
-        <div id="create-openmat-section" style="display: none">
-          <h3>Neues Event erstellen</h3>
-          <form id="openmat-form">
-            <!-- NEU: Gym-Auswahl Dropdown -->
-            <div class="form-group">
-              <label>Gym auswählen *</label>
-              <select id="openmat-gym-select" name="gym_id" required>
-                <option value="">Gym auswählen...</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>Event Titel *</label>
-              <input
-                type="text"
-                name="title"
-                required
-                placeholder="z.B. Samstag Open Mat"
-              />
-            </div>
-
-            <div class="form-group">
-              <label>Beschreibung</label>
-              <textarea
-                name="description"
-                rows="3"
-                placeholder="Details zum Event..."
-              ></textarea>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Datum & Uhrzeit *</label>
-                <input type="datetime-local" name="event_date" required />
-              </div>
-              <div class="form-group">
-                <label>Dauer (Minuten) *</label>
-                <input
-                  type="number"
-                  name="duration_minutes"
-                  value="120"
-                  min="30"
-                  step="15"
-                  required
-                />
-              </div>
-            </div>
-
-            <button type="submit" class="btn">Event erstellen</button>
-          </form>
-        </div>
-
-        <h3 style="margin-top: 40px">Kommende Open Mats</h3>
-        <div id="openmats-list" class="calendar"></div>
-      </div>
-
-      <!-- NEUER TAB: Freunde -->
-      <div id="friends-tab" class="tab-content">
-        <h2>👥 Freunde</h2>
-
-        <div id="friend-requests-section">
-          <h3>Freundschaftsanfragen</h3>
-          <div id="friend-requests-list"></div>
-        </div>
-
-        <div id="friends-list-section" style="margin-top: 40px">
-          <h3>Meine Freunde</h3>
-          <div id="friends-list" class="profiles-grid"></div>
-        </div>
-      </div>
-
-      <!-- NEUER TAB: Nachrichten -->
-      <div id="messages-tab" class="tab-content">
-        <h2>💬 Nachrichten</h2>
-        <div class="messages-container">
-          <div class="chat-list">
-            <h3>Chats</h3>
-            <div id="chat-list"></div>
-          </div>
-          <div class="chat-window" id="chat-window">
-            <p style="text-align: center; color: #999; padding: 40px">
-              Wähle einen Chat aus der Liste
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div id="map-tab" class="tab-content">
-        <h2>🗺️ Gyms & Open Mats auf der Karte</h2>
-        <div id="map"></div>
       </div>
     </div>
 
-    <div class="notification" id="notification"></div>
-
-    <!-- Auth Modal -->
-    <div class="modal" id="auth-modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2 id="modal-title">Login</h2>
-          <button class="modal-close" onclick="closeModal()">&times;</button>
+    <!-- ========================================= -->
+    <!-- CUSTOMER VIEW (Kunde schaut Coach-Content) -->
+    <!-- ========================================= -->
+    <div id="customerView" style="display: none">
+      <div class="container" style="padding: 2rem 1rem;">
+        <!-- Customer Info -->
+        <div class="user-info" id="customerInfo">
+          <!-- Wird von JavaScript gefüllt -->
         </div>
-        <form id="auth-form">
+
+        <!-- Content Tabs -->
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="customerVideos">📹 Videos</button>
+          <button class="tab-btn" data-tab="customerDocuments">📄 Dokumente</button>
+          <button class="tab-btn" data-tab="customerImages">🖼️ Bilder</button>
+        </div>
+
+        <!-- Content Grid -->
+        <div id="customerVideos" class="tab-content active">
+          <div class="content-grid" id="customerVideoList"></div>
+        </div>
+
+        <div id="customerDocuments" class="tab-content">
+          <div class="content-grid" id="customerDocumentList"></div>
+        </div>
+
+        <div id="customerImages" class="tab-content">
+          <div class="content-grid" id="customerImageList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- MODALS -->
+    <!-- ========================================= -->
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Anmelden</h2>
+        <form id="loginForm">
           <div class="form-group">
             <label>E-Mail</label>
-            <input type="email" name="email" required />
+            <input type="email" id="loginEmail" required />
           </div>
           <div class="form-group">
             <label>Passwort</label>
-            <input type="password" name="password" required minlength="6" />
+            <input type="password" id="loginPassword" required />
           </div>
-          <button type="submit" id="auth-submit-btn" class="btn">
+          <button type="submit" class="btn btn-primary" style="width: 100%">
             Anmelden
           </button>
-          <p style="margin-top: 15px; text-align: center">
-            <a href="#" id="toggle-auth" onclick="toggleAuthMode(event)"
-              >Noch kein Konto? Registrieren</a
-            >
-          </p>
+          <div class="form-link">
+            Noch kein Konto?
+            <a href="#" id="showRegister">Jetzt registrieren</a>
+          </div>
         </form>
       </div>
     </div>
 
-    <!-- Open Mat Chat Modal -->
-    <div class="modal" id="openmat-chat-modal">
-      <div class="modal-content" style="max-width: 800px">
-        <div class="modal-header">
-          <h2 id="openmat-chat-title">Event Chat</h2>
-          <button class="modal-close" onclick="closeOpenMatChat()">
-            &times;
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Registrieren</h2>
+        
+        <!-- User Type Selection -->
+        <div class="user-type-selection" id="userTypeSelection">
+          <button class="user-type-btn" data-type="coach">
+            <div class="user-type-icon">🎓</div>
+            <h3>Als Coach</h3>
+            <p>Verkaufe deine Inhalte</p>
+          </button>
+          <button class="user-type-btn" data-type="customer">
+            <div class="user-type-icon">👤</div>
+            <h3>Als Kunde</h3>
+            <p>Zugriff auf Coach-Content</p>
           </button>
         </div>
-        <div class="openmat-chat-container">
-          <div id="openmat-messages" class="chat-messages"></div>
-          <form id="openmat-message-form" class="chat-input-form">
-            <input
-              type="text"
-              name="message"
-              placeholder="Nachricht schreiben..."
-              required
-            />
-            <button type="submit" class="btn">Senden</button>
-          </form>
-        </div>
+
+        <!-- Registration Form (wird angezeigt nach User-Type-Auswahl) -->
+        <form id="registerForm" style="display: none;">
+          <input type="hidden" id="registerUserType" value="" />
+          
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="registerName" required />
+          </div>
+          <div class="form-group">
+            <label>E-Mail</label>
+            <input type="email" id="registerEmail" required />
+          </div>
+          <div class="form-group">
+            <label>Passwort (min. 6 Zeichen)</label>
+            <input type="password" id="registerPassword" required minlength="6" />
+          </div>
+
+          <!-- Für Coaches: Username -->
+          <div class="form-group" id="usernameGroup" style="display: none;">
+            <label>Benutzername (für deine URL)</label>
+            <input type="text" id="registerUsername" placeholder="dein-name" />
+          </div>
+
+          <!-- Für Kunden: Coach auswählen -->
+          <div class="form-group" id="coachSelectionGroup" style="display: none;">
+            <label>Bei welchem Coach möchtest du dich anmelden?</label>
+            <input type="text" id="coachSearchInput" placeholder="Coach-Name oder Username suchen..." />
+            <div id="coachSearchResults"></div>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" id="acceptPrivacy" required />
+              Ich akzeptiere die
+              <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a>
+              und <a href="agb.html" target="_blank">AGB</a>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%">
+            Registrieren
+          </button>
+          <div class="form-link">
+            <a href="#" id="backToUserTypeSelection">← Zurück zur Auswahl</a>
+          </div>
+          <div class="form-link">
+            Bereits registriert? <a href="#" id="showLogin">Jetzt anmelden</a>
+          </div>
+        </form>
       </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js"></script>
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Zahlung</h2>
+        <div id="paymentInfo">
+          <!-- Wird von JavaScript gefüllt -->
+        </div>
+        <form id="paymentForm">
+          <p style="color: #999; text-align: center; margin: 2rem 0">
+            Du wirst zu Stripe weitergeleitet, um die Zahlung sicher abzuschließen.
+          </p>
+          <button type="submit" class="btn btn-primary" style="width: 100%">
+            Zur Zahlung
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h4>CoachPlatform</h4>
+            <p>Die einfachste Weg, deine Inhalte zu monetarisieren</p>
+          </div>
+          <div class="footer-section">
+            <h4>Rechtliches</h4>
+            <ul class="footer-links">
+              <li><a href="impressum.html">Impressum</a></li>
+              <li><a href="datenschutz.html">Datenschutz</a></li>
+              <li><a href="cookies.html">Cookie-Richtlinie</a></li>
+              <li><a href="agb.html">AGB</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Support</h4>
+            <ul class="footer-links">
+              <li><a href="mailto:support@coachplatform.de">support@coachplatform.de</a></li>
+              <li><a href="#" id="openCookieSettings">Cookie-Einstellungen</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2025 CoachPlatform. Alle Rechte vorbehalten.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- App Script -->
+    <script src="app-multitenant.js"></script>
   </body>
 </html>

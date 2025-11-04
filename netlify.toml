@@ -1,11 +1,201 @@
+# ═══════════════════════════════════════════════════════
+# NETLIFY KONFIGURATION - FittiCoach DSGVO-Edition
+# ═══════════════════════════════════════════════════════
+# Suche im Code nach: "# >>> GLIEDERUNGSPUNKT X: BEZEICHNUNG"
+#
+# 1. BUILD-EINSTELLUNGEN
+# 2. REDIRECTS (Spezifische URLs zuerst, dann SPA Fallback)
+# 3. SECURITY HEADERS (DSGVO & Best Practices)
+# 4. CACHE HEADERS (Performance-Optimierung)
+# 5. BILD-CACHING (JPG, PNG, WebP)
+# 6. ENVIRONMENT VARIABLES (Dokumentation)
+
+# ============================================
+# 1. BUILD-EINSTELLUNGEN
+# >>> GLIEDERUNGSPUNKT 1: BUILD-EINSTELLUNGEN
+# ============================================
 [build]
   publish = "dist"
   command = "node build.js"
 
-[build.environment]
-  NODE_VERSION = "18"
+# ============================================
+# 2. REDIRECTS
+# >>> GLIEDERUNGSPUNKT 2: REDIRECTS
+# ============================================
+# WICHTIG: Redirects werden von oben nach unten verarbeitet
+# Spezifische Regeln MÜSSEN vor dem SPA Fallback stehen!
 
+# Stripe Success-Seite (direkt anzeigen, nicht zu index.html)
+[[redirects]]
+  from = "/success.html"
+  to = "/success.html"
+  status = 200
+  force = false
+
+# Viewer-Seite (direkt anzeigen)
+[[redirects]]
+  from = "/viewer.html"
+  to = "/viewer.html"
+  status = 200
+  force = false
+
+# DSGVO-Seiten (direkt anzeigen)
+[[redirects]]
+  from = "/impressum.html"
+  to = "/impressum.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/datenschutz.html"
+  to = "/datenschutz.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/cookies.html"
+  to = "/cookies.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/agb.html"
+  to = "/agb.html"
+  status = 200
+  force = false
+
+# SPA Fallback - Alle anderen Requests zu index.html
+# (kommt als LETZTES!)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# ============================================
+# 3. SECURITY HEADERS
+# >>> GLIEDERUNGSPUNKT 3: SECURITY HEADERS
+# ============================================
+# Allgemeine Security Headers für alle Seiten
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Verhindert Einbettung in iframes (Clickjacking-Schutz)
+    X-Frame-Options = "DENY"
+    
+    # XSS-Schutz aktivieren
+    X-XSS-Protection = "1; mode=block"
+    
+    # MIME-Type-Sniffing verhindern
+    X-Content-Type-Options = "nosniff"
+    
+    # Referrer Policy (Datenschutz)
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Permissions Policy (Zugriff auf Gerätehardware beschränken)
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(self)"
+    
+    # Strict Transport Security (HTTPS erzwingen) - 1 Jahr
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+
+# Spezielle Headers für Stripe Checkout (Frame erlauben)
+[[headers]]
+  for = "/success.html"
+  [headers.values]
+    # Stripe Checkout benötigt Frame-Zugriff
+    X-Frame-Options = "SAMEORIGIN"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+
+# ============================================
+# 4. CACHE HEADERS FÜR PERFORMANCE
+# >>> GLIEDERUNGSPUNKT 4: CACHE HEADERS
+# ============================================
+# CSS - 1 Jahr cachen (mit immutable flag)
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# JavaScript - NUR 1 Stunde cachen (nicht 1 Jahr!)
+# WICHTIG: app.js enthält oft geänderte Inhalte (Image-URLs, Demo-Content)
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+# HTML - Nicht cachen (immer aktuell laden)
+[[headers]]
+  for = "*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ============================================
+# 5. BILD-CACHING
+# >>> GLIEDERUNGSPUNKT 5: BILD-CACHING
+# ============================================
+# Bilder - 1 Jahr cachen
+[[headers]]
+  for = "*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.jpeg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.webp"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.gif"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ============================================
+# 6. ENVIRONMENT VARIABLES (DOKUMENTATION)
+# >>> GLIEDERUNGSPUNKT 6: ENVIRONMENT VARIABLES
+# ============================================
+# Diese werden in der Netlify UI gesetzt unter:
+# Site Settings → Build & Deploy → Environment Variables
+#
+# Benötigte Variables:
+# ✅ SUPABASE_URL                  (PFLICHT)
+# ✅ SUPABASE_ANON_KEY             (PFLICHT)
+# ⚠️ STRIPE_PUBLISHABLE_KEY       (Optional - Demo-Modus wenn nicht gesetzt)
+# ⚠️ STRIPE_PRICE_BASIC            (Optional - für echte Zahlungen)
+# ⚠️ STRIPE_PRICE_PREMIUM          (Optional - für echte Zahlungen)
+# ⚠️ STRIPE_PRICE_ELITE            (Optional - für echte Zahlungen)
+#
+# Beispielwerte:
+# SUPABASE_URL=https://xxxxx.supabase.co
+# SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+# STRIPE_PUBLISHABLE_KEY=pk_test_51...
+# STRIPE_PRICE_BASIC=price_1QMabc...
+# STRIPE_PRICE_PREMIUM=price_1QMdef...
+# STRIPE_PRICE_ELITE=price_1QMghi...
+
+# ============================================
+# 7. ZUSÄTZLICHE OPTIONEN
+# ============================================
+# Netlify Functions (falls du später welche brauchst)
+# [functions]
+#   directory = "netlify/functions"
+
+# Formulare (falls du später Kontaktformular ohne Backend willst)
+# [build.processing]
+#   skip_processing = false
+# [build.processing.html]
+#   pretty_urls = true
