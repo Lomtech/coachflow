@@ -1,19 +1,19 @@
 # ============================================
-# NETLIFY CONFIGURATION - CoachPlatform
+# NETLIFY CONFIGURATION (FIXED)
 # ============================================
 
 [build]
-  # Build Command
-  command = "node build-fixed.js"
+  # Build Command - nutze build.js (nicht build-fixed.js!)
+  command = "node build.js"
   
   # Publish Directory
   publish = "dist"
   
-  # Functions Directory (für Stripe Webhook)
+  # Functions Directory
   functions = "netlify/functions"
 
 # ============================================
-# BUILD SETTINGS
+# BUILD ENVIRONMENT
 # ============================================
 [build.environment]
   NODE_VERSION = "18"
@@ -27,17 +27,16 @@
   status = 200
   force = false
 
-# API Routes zu Functions
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
 # ============================================
-# HEADERS (FIX für MIME Types!)
+# HEADERS (MIME Types Fix!)
 # ============================================
 
-# JavaScript Files - WICHTIG für MIME Type Fehler!
+# JavaScript Files
 [[headers]]
   for = "/*.js"
   [headers.values]
@@ -64,7 +63,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
-# Root Path
+# Root
 [[headers]]
   for = "/"
   [headers.values]
@@ -75,7 +74,7 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "payment=*"
 
-# Security Headers für alle Pfade
+# All Files
 [[headers]]
   for = "/*"
   [headers.values]
@@ -86,46 +85,15 @@
     Permissions-Policy = "payment=*, camera=(), microphone=(), geolocation=()"
 
 # ============================================
-# CONTEXT-SPECIFIC SETTINGS
+# CONTEXT SETTINGS
 # ============================================
 
-# Production
 [context.production]
   [context.production.environment]
     NODE_ENV = "production"
 
-# Deploy Preview
 [context.deploy-preview]
-  command = "node build-fixed.js"
+  command = "node build.js"
 
-# Branch Deploy
 [context.branch-deploy]
-  command = "node build-fixed.js"
-
-# ============================================
-# PLUGINS (Optional)
-# ============================================
-
-# Lighthouse Plugin für Performance Monitoring
-# [[plugins]]
-#   package = "@netlify/plugin-lighthouse"
-
-# ============================================
-# NOTES
-# ============================================
-# Stelle sicher, dass folgende Environment Variables in Netlify gesetzt sind:
-# 
-# SUPABASE_URL
-# SUPABASE_ANON_KEY
-# SUPABASE_SERVICE_ROLE_KEY (nur für Functions)
-# 
-# STRIPE_PUBLISHABLE_KEY
-# STRIPE_SECRET_KEY (nur für Functions)
-# STRIPE_WEBHOOK_SECRET (nur für Functions)
-# 
-# STRIPE_PRICE_COACH_BASIC
-# STRIPE_PRICE_COACH_PREMIUM
-# STRIPE_PRICE_COACH_ELITE
-# STRIPE_PRICE_CUSTOMER_BASIC
-# STRIPE_PRICE_CUSTOMER_PREMIUM
-# STRIPE_PRICE_CUSTOMER_ELITE
+  command = "node build.js"

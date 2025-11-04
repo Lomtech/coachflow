@@ -291,5 +291,5 @@ console.log(
     (STRIPE_PUBLISHABLE_KEY ? "aktiviert" : "Demo-Modus")
 );
 
-console.log("\n🚀 Bereit für Deployment!");
+console.log("\n🚀 Bereit für Deployment!!");
 console.log("═════════════════════════════════════════════\n");
