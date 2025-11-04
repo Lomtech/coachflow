@@ -1,5 +1,5 @@
 // ============================================
-// EINFACHES BUILD-SCRIPT - FittiCoach1
+// FIXED BUILD SCRIPT - Multi-Tenant SaaS
 // ============================================
 const fs = require("fs");
 const path = require("path");
@@ -10,10 +10,12 @@ console.log("\n🚀 Starte Build-Prozess...\n");
 // 1. SETUP
 // ============================================
 const distDir = path.join(__dirname, "dist");
-if (!fs.existsSync(distDir)) {
-  fs.mkdirSync(distDir);
-  console.log("✅ dist/ Ordner erstellt");
+if (fs.existsSync(distDir)) {
+  fs.rmSync(distDir, { recursive: true, force: true });
+  console.log("🗑️  Alter dist/ Ordner gelöscht");
 }
+fs.mkdirSync(distDir);
+console.log("✅ Neuer dist/ Ordner erstellt");
 
 // ============================================
 // 2. ENVIRONMENT VARIABLES
@@ -21,9 +23,16 @@ if (!fs.existsSync(distDir)) {
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const STRIPE_PUBLISHABLE_KEY = process.env.STRIPE_PUBLISHABLE_KEY;
-const STRIPE_PRICE_BASIC = process.env.STRIPE_PRICE_BASIC;
-const STRIPE_PRICE_PREMIUM = process.env.STRIPE_PRICE_PREMIUM;
-const STRIPE_PRICE_ELITE = process.env.STRIPE_PRICE_ELITE;
+
+// Coach Price IDs
+const STRIPE_PRICE_COACH_BASIC = process.env.STRIPE_PRICE_COACH_BASIC;
+const STRIPE_PRICE_COACH_PREMIUM = process.env.STRIPE_PRICE_COACH_PREMIUM;
+const STRIPE_PRICE_COACH_ELITE = process.env.STRIPE_PRICE_COACH_ELITE;
+
+// Customer Price IDs
+const STRIPE_PRICE_CUSTOMER_BASIC = process.env.STRIPE_PRICE_CUSTOMER_BASIC;
+const STRIPE_PRICE_CUSTOMER_PREMIUM = process.env.STRIPE_PRICE_CUSTOMER_PREMIUM;
+const STRIPE_PRICE_CUSTOMER_ELITE = process.env.STRIPE_PRICE_CUSTOMER_ELITE;
 
 // Validierung
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -48,11 +57,11 @@ console.log(
 // ============================================
 // 3. APP.JS VERARBEITEN
 // ============================================
-console.log("\n🔧 Verarbeite app.js...");
+console.log("\n🔧 Verarbeite app-multitenant.js...");
 
-let appJs = fs.readFileSync(path.join(__dirname, "app.js"), "utf8");
+let appJs = fs.readFileSync(path.join(__dirname, "app-multitenant.js"), "utf8");
 
-// Ersetze ALLE Vorkommen der Platzhalter (global mit /g flag)
+// Ersetze Credentials
 appJs = appJs.replace(/DEIN_SUPABASE_URL/g, SUPABASE_URL);
 appJs = appJs.replace(/DEIN_SUPABASE_ANON_KEY/g, SUPABASE_ANON_KEY);
 appJs = appJs.replace(
@@ -60,22 +69,41 @@ appJs = appJs.replace(
   STRIPE_PUBLISHABLE_KEY || "DEIN_STRIPE_PUBLISHABLE_KEY"
 );
 
-console.log("   ✅ Credentials ersetzt");
-
-// Ersetze Price IDs
-if (STRIPE_PRICE_BASIC) {
-  appJs = appJs.replace(/price_BASIC_ID/g, STRIPE_PRICE_BASIC);
-  console.log("   ✅ STRIPE_PRICE_BASIC ersetzt");
+// Ersetze Coach Price IDs
+if (STRIPE_PRICE_COACH_BASIC) {
+  appJs = appJs.replace(/price_COACH_BASIC_ID/g, STRIPE_PRICE_COACH_BASIC);
+  console.log("   ✅ STRIPE_PRICE_COACH_BASIC ersetzt");
+}
+if (STRIPE_PRICE_COACH_PREMIUM) {
+  appJs = appJs.replace(/price_COACH_PREMIUM_ID/g, STRIPE_PRICE_COACH_PREMIUM);
+  console.log("   ✅ STRIPE_PRICE_COACH_PREMIUM ersetzt");
+}
+if (STRIPE_PRICE_COACH_ELITE) {
+  appJs = appJs.replace(/price_COACH_ELITE_ID/g, STRIPE_PRICE_COACH_ELITE);
+  console.log("   ✅ STRIPE_PRICE_COACH_ELITE ersetzt");
 }
 
-if (STRIPE_PRICE_PREMIUM) {
-  appJs = appJs.replace(/price_PREMIUM_ID/g, STRIPE_PRICE_PREMIUM);
-  console.log("   ✅ STRIPE_PRICE_PREMIUM ersetzt");
+// Ersetze Customer Price IDs
+if (STRIPE_PRICE_CUSTOMER_BASIC) {
+  appJs = appJs.replace(
+    /price_CUSTOMER_BASIC_ID/g,
+    STRIPE_PRICE_CUSTOMER_BASIC
+  );
+  console.log("   ✅ STRIPE_PRICE_CUSTOMER_BASIC ersetzt");
 }
-
-if (STRIPE_PRICE_ELITE) {
-  appJs = appJs.replace(/price_ELITE_ID/g, STRIPE_PRICE_ELITE);
-  console.log("   ✅ STRIPE_PRICE_ELITE ersetzt");
+if (STRIPE_PRICE_CUSTOMER_PREMIUM) {
+  appJs = appJs.replace(
+    /price_CUSTOMER_PREMIUM_ID/g,
+    STRIPE_PRICE_CUSTOMER_PREMIUM
+  );
+  console.log("   ✅ STRIPE_PRICE_CUSTOMER_PREMIUM ersetzt");
+}
+if (STRIPE_PRICE_CUSTOMER_ELITE) {
+  appJs = appJs.replace(
+    /price_CUSTOMER_ELITE_ID/g,
+    STRIPE_PRICE_CUSTOMER_ELITE
+  );
+  console.log("   ✅ STRIPE_PRICE_CUSTOMER_ELITE ersetzt");
 }
 
 // Schreibe app.js
@@ -83,118 +111,155 @@ fs.writeFileSync(path.join(distDir, "app.js"), appJs);
 console.log("   ✅ app.js → dist/app.js");
 
 // ============================================
-// 4. SUCCESS.HTML (falls vorhanden)
+// 4. INDEX.HTML VERARBEITEN (FIX für Netlify)
 // ============================================
-if (fs.existsSync(path.join(__dirname, "success.html"))) {
-  console.log("\n🔧 Verarbeite success.html...");
+console.log("\n🔧 Verarbeite index.html...");
 
-  let successHtml = fs.readFileSync(
-    path.join(__dirname, "success.html"),
+let indexHtml = fs.readFileSync(
+  path.join(__dirname, "index_multitenant.html"),
+  "utf8"
+);
+
+// Ersetze app-multitenant.js → app.js
+indexHtml = indexHtml.replace(/app-multitenant\.js/g, "app.js");
+
+// Füge Cache-Busting hinzu
+const buildVersion = Date.now();
+indexHtml = indexHtml.replace(
+  /<script src="app\.js"><\/script>/g,
+  `<script src="app.js?v=${buildVersion}"></script>`
+);
+
+// Fix: Deprecated Meta Tag
+indexHtml = indexHtml.replace(
+  '<meta name="apple-mobile-web-app-capable" content="yes" />',
+  '<meta name="mobile-web-app-capable" content="yes" />\n    <meta name="apple-mobile-web-app-capable" content="yes" />'
+);
+
+// Füge Payment Policy hinzu (Fix für Payment Error)
+indexHtml = indexHtml.replace(
+  '<meta name="mobile-web-app-capable" content="yes" />',
+  '<meta name="mobile-web-app-capable" content="yes" />\n    <permissions-policy content="payment=*">'
+);
+
+fs.writeFileSync(path.join(distDir, "index.html"), indexHtml);
+console.log("   ✅ index.html (mit Fixes)");
+
+// ============================================
+// 5. CSS DATEIEN KOMBINIEREN
+// ============================================
+console.log("\n🎨 Kombiniere CSS Dateien...");
+
+let mainCss = fs.readFileSync(path.join(__dirname, "styles.css"), "utf8");
+let addonCss = "";
+
+if (fs.existsSync(path.join(__dirname, "styles-multitenant-addon.css"))) {
+  addonCss = fs.readFileSync(
+    path.join(__dirname, "styles-multitenant-addon.css"),
     "utf8"
   );
-
-  successHtml = successHtml.replace(/DEIN_SUPABASE_URL/g, SUPABASE_URL);
-  successHtml = successHtml.replace(
-    /DEIN_SUPABASE_ANON_KEY/g,
-    SUPABASE_ANON_KEY
-  );
-
-  fs.writeFileSync(path.join(distDir, "success.html"), successHtml);
-  console.log("   ✅ success.html → dist/success.html");
 }
 
-// ============================================
-// 5. HAUPTDATEIEN KOPIEREN MIT CACHE-BUSTING
-// ============================================
-console.log("\n📁 Kopiere Hauptdateien...");
-
-// Erstelle Build-Timestamp für Cache-Busting
-const buildVersion = Date.now();
-console.log(`   🔖 Build-Version: ${buildVersion}`);
-
-// Kopiere und modifiziere index.html für Cache-Busting
-if (fs.existsSync(path.join(__dirname, "index.html"))) {
-  let indexHtml = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
-
-  // Füge Version zu app.js hinzu
-  indexHtml = indexHtml.replace(
-    /<script src="app\.js"><\/script>/g,
-    `<script src="app.js?v=${buildVersion}"></script>`
-  );
-
-  // Füge Version zu styles.css hinzu
-  indexHtml = indexHtml.replace(
-    /<link rel="stylesheet" href="styles\.css">/g,
-    `<link rel="stylesheet" href="styles.css?v=${buildVersion}">`
-  );
-
-  fs.writeFileSync(path.join(distDir, "index.html"), indexHtml);
-  console.log("   ✅ index.html (mit Cache-Busting)");
-}
-
-// Kopiere andere Dateien normal
-const otherFiles = ["styles.css", "viewer.html"];
-
-otherFiles.forEach((file) => {
-  if (fs.existsSync(path.join(__dirname, file))) {
-    fs.copyFileSync(path.join(__dirname, file), path.join(distDir, file));
-    console.log(`   ✅ ${file}`);
-  }
-});
+// Kombiniere CSS
+const combinedCss =
+  mainCss + "\n\n/* === MULTI-TENANT ADDON STYLES === */\n\n" + addonCss;
+fs.writeFileSync(path.join(distDir, "styles.css"), combinedCss);
+console.log("   ✅ styles.css (kombiniert)");
 
 // ============================================
-// 6. DSGVO-SEITEN
+// 6. WEITERE DATEIEN KOPIEREN
 // ============================================
-console.log("\n📄 Kopiere DSGVO-Seiten...");
+console.log("\n📁 Kopiere weitere Dateien...");
 
-const legalFiles = [
+const filesToCopy = [
+  "viewer.html",
   "impressum.html",
   "datenschutz.html",
   "cookies.html",
   "agb.html",
 ];
 
-let copiedLegal = 0;
-legalFiles.forEach((file) => {
+let copiedFiles = 0;
+filesToCopy.forEach((file) => {
   if (fs.existsSync(path.join(__dirname, file))) {
     fs.copyFileSync(path.join(__dirname, file), path.join(distDir, file));
     console.log(`   ✅ ${file}`);
-    copiedLegal++;
+    copiedFiles++;
+  } else {
+    console.log(`   ⚠️ ${file} nicht gefunden (übersprungen)`);
   }
 });
 
-if (copiedLegal < 4) {
-  console.warn(`\n⚠️ WARNUNG: Nur ${copiedLegal}/4 DSGVO-Seiten gefunden!`);
-}
-
 // ============================================
-// 7. NETLIFY KONFIGURATION
+// 7. _REDIRECTS für Netlify
 // ============================================
 console.log("\n⚙️ Erstelle Netlify-Konfiguration...");
 
-// _redirects
-const redirectsContent = `/*  /index.html  200`;
+const redirectsContent = `# Netlify Redirects
+/*  /index.html  200
+
+# API Routes (falls vorhanden)
+/api/*  /.netlify/functions/:splat  200
+
+# Security Headers
+/*
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: payment=*
+`;
+
 fs.writeFileSync(path.join(distDir, "_redirects"), redirectsContent);
 console.log("   ✅ _redirects");
 
 // ============================================
-// 8. ZUSAMMENFASSUNG
+// 8. _HEADERS für Netlify (WICHTIG!)
+// ============================================
+const headersContent = `# Netlify Headers
+
+# JavaScript Files
+/*.js
+  Content-Type: application/javascript; charset=utf-8
+  Cache-Control: public, max-age=31536000, immutable
+
+# CSS Files
+/*.css
+  Content-Type: text/css; charset=utf-8
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML Files
+/*.html
+  Content-Type: text/html; charset=utf-8
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Root
+/
+  Content-Type: text/html; charset=utf-8
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: payment=*
+`;
+
+fs.writeFileSync(path.join(distDir, "_headers"), headersContent);
+console.log("   ✅ _headers (MIME Types Fix)");
+
+// ============================================
+// 9. ZUSAMMENFASSUNG
 // ============================================
 console.log("\n═════════════════════════════════════════════");
 console.log("✅ Build erfolgreich abgeschlossen!");
 console.log("═════════════════════════════════════════════");
 
-console.log("\n📦 Erstelle Dateien:");
+console.log("\n📦 Erstellte Dateien:");
 console.log("   ✅ app.js (mit Credentials)");
-console.log("   ✅ index.html");
-console.log("   ✅ styles.css");
-if (fs.existsSync(path.join(distDir, "viewer.html"))) {
-  console.log("   ✅ viewer.html");
-}
-if (fs.existsSync(path.join(distDir, "success.html"))) {
-  console.log("   ✅ success.html");
-}
-console.log(`   ✅ ${copiedLegal}/4 DSGVO-Seiten`);
+console.log("   ✅ index.html (mit Fixes)");
+console.log("   ✅ styles.css (kombiniert)");
+console.log(`   ✅ ${copiedFiles} zusätzliche Dateien`);
+console.log("   ✅ _redirects");
+console.log("   ✅ _headers (MIME Fix!)");
 
 console.log("\n🔑 Konfiguration:");
 console.log("   ✅ Supabase URL & Key gesetzt");
@@ -205,5 +270,6 @@ console.log(
     (STRIPE_PUBLISHABLE_KEY ? "aktiviert" : "Demo-Modus")
 );
 
-console.log("\n🚀 Bereit für Deployment!");
+console.log("\n🚀 Bereit für Netlify Deployment!");
+console.log("   Führe aus: netlify deploy --prod");
 console.log("═════════════════════════════════════════════\n");
