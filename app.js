@@ -1,5 +1,5 @@
 // ============================================
-// MULTI-TENANT SAAS - JAVASCRIPT
+// MULTI-TENANT SAAS - JAVASCRIPT (KORRIGIERT)
 // CoachPlatform - Für Coaches & Kunden
 // ============================================
 
@@ -34,9 +34,9 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let currentProfile = null;
 let currentSubscription = null;
-let selectedCoachId = null; // Für Kunden-Registrierung
+let selectedCoachId = null;
 
-// >>> COOKIE CONSENT (gleich wie vorher)
+// >>> COOKIE CONSENT
 const CookieConsent = {
   CONSENT_COOKIE: "coachplatform_cookie_consent",
   hasConsent() {
@@ -80,7 +80,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     STRIPE_PUBLISHABLE_KEY !== "DEIN_STRIPE_PUBLISHABLE_KEY" &&
     typeof Stripe !== "undefined"
   ) {
-    stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+    try {
+      stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+      debugLog("Stripe initialisiert");
+    } catch (error) {
+      console.error("Stripe Fehler:", error);
+    }
   }
 
   await checkUserSession();
@@ -121,8 +126,12 @@ async function loadUserProfile() {
 }
 
 async function loadUserSubscription() {
+  if (!currentProfile) {
+    debugLog("Kein Profile vorhanden, überspringe Subscription-Load");
+    return;
+  }
+
   if (currentProfile.user_type === "coach") {
-    // Lade Coach-Subscription
     const { data } = await supabase
       .from("coach_subscriptions")
       .select("*")
@@ -131,7 +140,6 @@ async function loadUserSubscription() {
       .single();
     currentSubscription = data;
   } else {
-    // Lade Customer-Subscription
     const { data } = await supabase
       .from("customer_subscriptions")
       .select("*")
@@ -141,6 +149,48 @@ async function loadUserSubscription() {
     currentSubscription = data;
   }
   debugLog("Subscription geladen:", currentSubscription);
+}
+
+// ============================================
+// >>> DEMO SUBSCRIPTION CREATOR
+// ============================================
+async function createDemoSubscription(userId, userType, plan = "premium") {
+  debugLog("Erstelle Demo-Subscription für:", userId, userType, plan);
+
+  try {
+    const table =
+      userType === "coach" ? "coach_subscriptions" : "customer_subscriptions";
+    const idField = userType === "coach" ? "coach_id" : "customer_id";
+
+    const subscriptionData = {
+      [idField]: userId,
+      plan: plan,
+      status: "active",
+      start_date: new Date().toISOString(),
+      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    };
+
+    if (userType === "customer" && selectedCoachId) {
+      subscriptionData.coach_id = selectedCoachId;
+    }
+
+    const { data, error } = await supabase
+      .from(table)
+      .insert([subscriptionData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Subscription Error:", error);
+      throw error;
+    }
+
+    debugLog("Demo-Subscription erstellt:", data);
+    return data;
+  } catch (error) {
+    console.error("createDemoSubscription failed:", error);
+    throw error;
+  }
 }
 
 // ============================================
@@ -162,12 +212,10 @@ function updateUIBasedOnUserType() {
     if (currentSubscription) {
       showCoachDashboard();
     } else {
-      // Coach ohne Abo - zeige Pricing
       showLandingPage();
       showAlert("Bitte wähle einen Coach-Plan, um zu starten", "info");
     }
   } else {
-    // Customer
     if (currentSubscription) {
       showCustomerView();
     } else {
@@ -182,7 +230,6 @@ async function showCoachDashboard() {
   document.getElementById("coachDashboard").style.display = "block";
   document.getElementById("customerView").style.display = "none";
 
-  // Lade Coach-Daten
   await loadCoachInfo();
   await loadCoachStatistics();
   await loadCoachContent();
@@ -193,7 +240,6 @@ async function showCustomerView() {
   document.getElementById("coachDashboard").style.display = "none";
   document.getElementById("customerView").style.display = "block";
 
-  // Lade Customer-Daten
   await loadCustomerInfo();
   await loadCustomerContent();
 }
@@ -203,6 +249,8 @@ async function showCustomerView() {
 // ============================================
 async function loadCoachInfo() {
   const coachInfoDiv = document.getElementById("coachInfo");
+  if (!coachInfoDiv) return;
+
   const planNames = { basic: "Basic", premium: "Premium", elite: "Elite" };
 
   coachInfoDiv.innerHTML = `
@@ -211,34 +259,31 @@ async function loadCoachInfo() {
     <p><strong>Username:</strong> ${
       currentProfile.coach_username || "Noch nicht gesetzt"
     }</p>
-    <p><strong>Deine URL:</strong> <a href="/coach/${
-      currentProfile.coach_username
-    }" target="_blank">
-      ${window.location.origin}/coach/${currentProfile.coach_username}
-    </a></p>
-    <p><strong>Status:</strong> <span style="color: var(--success);">Aktiv</span></p>
+    <p><strong>Status:</strong> <span style="color: #10b981;">Aktiv</span></p>
   `;
 }
 
 async function loadCoachStatistics() {
-  // Hole Statistiken via Function
   const { data, error } = await supabase.rpc("get_coach_statistics", {
     p_coach_id: currentUser.id,
   });
 
   if (data) {
-    document.getElementById("totalCustomers").textContent =
-      data.total_customers || 0;
-    document.getElementById("totalContent").textContent =
-      data.total_content || 0;
-    document.getElementById("totalViews").textContent = data.total_views || 0;
+    const totalCustomers = document.getElementById("totalCustomers");
+    const totalContent = document.getElementById("totalContent");
+    const totalViews = document.getElementById("totalViews");
+    const monthlyRevenue = document.getElementById("monthlyRevenue");
 
-    // Revenue berechnen (vereinfacht)
+    if (totalCustomers) totalCustomers.textContent = data.total_customers || 0;
+    if (totalContent) totalContent.textContent = data.total_content || 0;
+    if (totalViews) totalViews.textContent = data.total_views || 0;
+
     const revenue = calculateMonthlyRevenue(data.customers_by_plan || {});
-    document.getElementById("monthlyRevenue").textContent = `€${revenue}`;
+    if (monthlyRevenue) monthlyRevenue.textContent = `€${revenue}`;
 
-    // Zeige Kunden nach Plan
     displayCustomersByPlan(data.customers_by_plan || {});
+  } else if (error) {
+    console.error("Statistics Error:", error);
   }
 }
 
@@ -253,6 +298,8 @@ function calculateMonthlyRevenue(customersByPlan) {
 
 function displayCustomersByPlan(customersByPlan) {
   const container = document.getElementById("customersByPlan");
+  if (!container) return;
+
   const planNames = { basic: "Basic", premium: "Premium", elite: "Elite" };
   const planColors = { basic: "#667eea", premium: "#f093fb", elite: "#ffd89b" };
 
@@ -278,11 +325,15 @@ async function loadCoachContent() {
 
   if (data) {
     displayCoachContent(data);
+  } else if (error) {
+    console.error("Content Load Error:", error);
   }
 }
 
 function displayCoachContent(contentList) {
   const container = document.getElementById("coachContentList");
+  if (!container) return;
+
   const planBadges = {
     basic: '<span class="access-badge basic">Basic</span>',
     premium: '<span class="access-badge premium">Premium</span>',
@@ -340,14 +391,14 @@ function initializeFileUpload() {
   const fileUploadArea = document.getElementById("fileUploadArea");
   const fileInput = document.getElementById("fileInput");
 
-  fileUploadArea.addEventListener("click", () => fileInput.click());
+  if (!fileUploadArea || !fileInput) return;
 
+  fileUploadArea.addEventListener("click", () => fileInput.click());
   fileInput.addEventListener("change", handleFileSelect);
 
-  // Drag & Drop
   fileUploadArea.addEventListener("dragover", (e) => {
     e.preventDefault();
-    fileUploadArea.style.borderColor = "var(--primary)";
+    fileUploadArea.style.borderColor = "#0071e3";
   });
 
   fileUploadArea.addEventListener("dragleave", () => {
@@ -370,14 +421,16 @@ function handleFileSelect() {
 
   if (file) {
     const placeholder = document.querySelector(".upload-placeholder");
-    placeholder.innerHTML = `
-      <p>✅ ${file.name}</p>
-      <p style="font-size: 0.9em; color: #999;">${(
-        file.size /
-        1024 /
-        1024
-      ).toFixed(2)} MB</p>
-    `;
+    if (placeholder) {
+      placeholder.innerHTML = `
+        <p>✅ ${file.name}</p>
+        <p style="font-size: 0.9em; color: #999;">${(
+          file.size /
+          1024 /
+          1024
+        ).toFixed(2)} MB</p>
+      `;
+    }
   }
 }
 
@@ -396,7 +449,6 @@ async function handleContentUpload(e) {
     return;
   }
 
-  // Prüfe Upload-Limit
   const { data: canUpload } = await supabase.rpc("check_coach_upload_limit", {
     p_coach_id: currentUser.id,
     p_content_type: type,
@@ -407,37 +459,27 @@ async function handleContentUpload(e) {
     return;
   }
 
-  // Zeige Progress
   const progressDiv = document.querySelector(".upload-progress");
-  progressDiv.style.display = "block";
-  document.querySelector(".upload-placeholder").style.display = "none";
+  const placeholder = document.querySelector(".upload-placeholder");
+
+  if (progressDiv) progressDiv.style.display = "block";
+  if (placeholder) placeholder.style.display = "none";
 
   try {
-    // 1. Upload File zu Supabase Storage
     const fileExt = file.name.split(".").pop();
     const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`;
     const bucket = "coach-content";
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from(bucket)
-      .upload(fileName, file, {
-        onUploadProgress: (progress) => {
-          const percent = (progress.loaded / progress.total) * 100;
-          document.getElementById("uploadProgress").style.width = `${percent}%`;
-          document.getElementById(
-            "uploadStatus"
-          ).textContent = `Hochladen... ${percent.toFixed(0)}%`;
-        },
-      });
+      .upload(fileName, file);
 
     if (uploadError) throw uploadError;
 
-    // 2. Get Public URL
     const { data: urlData } = supabase.storage
       .from(bucket)
       .getPublicUrl(fileName);
 
-    // 3. Speichere Content in Datenbank
     const { data: contentData, error: contentError } = await supabase
       .from("content")
       .insert([
@@ -460,22 +502,22 @@ async function handleContentUpload(e) {
 
     showAlert("Content erfolgreich hochgeladen!", "success");
 
-    // Reset Form
     document.getElementById("uploadForm").reset();
-    progressDiv.style.display = "none";
-    document.querySelector(".upload-placeholder").style.display = "block";
-    document.querySelector(".upload-placeholder").innerHTML = `
-      <p>📁 Klicke oder ziehe eine Datei hierher</p>
-      <p style="font-size: 0.9em; color: #999;">Max. 500 MB</p>
-    `;
+    if (progressDiv) progressDiv.style.display = "none";
+    if (placeholder) {
+      placeholder.style.display = "block";
+      placeholder.innerHTML = `
+        <p>📁 Klicke oder ziehe eine Datei hierher</p>
+        <p style="font-size: 0.9em; color: #999;">Max. 500 MB</p>
+      `;
+    }
 
-    // Reload Content
     await loadCoachContent();
   } catch (error) {
     console.error("Upload-Fehler:", error);
     showAlert("Upload fehlgeschlagen: " + error.message, "error");
-    progressDiv.style.display = "none";
-    document.querySelector(".upload-placeholder").style.display = "block";
+    if (progressDiv) progressDiv.style.display = "none";
+    if (placeholder) placeholder.style.display = "block";
   }
 }
 
@@ -484,9 +526,10 @@ async function handleContentUpload(e) {
 // ============================================
 async function loadCustomerInfo() {
   const customerInfoDiv = document.getElementById("customerInfo");
+  if (!customerInfoDiv) return;
+
   const planNames = { basic: "Basic", premium: "Premium", elite: "Elite" };
 
-  // Lade Coach-Info
   const { data: coachData } = await supabase
     .from("profiles")
     .select("*")
@@ -497,7 +540,7 @@ async function loadCustomerInfo() {
     <h3>Willkommen, ${currentProfile.full_name || currentProfile.email}!</h3>
     <p><strong>Dein Coach:</strong> ${coachData?.full_name || "Coach"}</p>
     <p><strong>Dein Plan:</strong> ${planNames[currentSubscription.plan]}</p>
-    <p><strong>Status:</strong> <span style="color: var(--success);">Aktiv</span></p>
+    <p><strong>Status:</strong> <span style="color: #10b981;">Aktiv</span></p>
     <p><strong>Gültig bis:</strong> ${new Date(
       currentSubscription.end_date
     ).toLocaleDateString("de-DE")}</p>
@@ -505,7 +548,6 @@ async function loadCustomerInfo() {
 }
 
 async function loadCustomerContent() {
-  // Hole Content basierend auf Subscription-Plan
   const { data, error } = await supabase
     .from("content")
     .select("*")
@@ -526,6 +568,8 @@ async function loadCustomerContent() {
 
 function displayCustomerContent(containerId, contentList) {
   const container = document.getElementById(containerId);
+  if (!container) return;
+
   const planHierarchy = { basic: 1, premium: 2, elite: 3 };
   const userLevel = planHierarchy[currentSubscription.plan];
 
@@ -553,7 +597,7 @@ function displayCustomerContent(containerId, contentList) {
           ${
             hasAccess
               ? `<a href="${item.file_url}" target="_blank" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Ansehen</a>`
-              : '<p style="color: var(--danger); margin-top: 10px;">Upgrade erforderlich</p>'
+              : '<p style="color: #ef4444; margin-top: 10px;">Upgrade erforderlich</p>'
           }
         </div>
       </div>
@@ -571,130 +615,43 @@ async function handleLogin(e) {
   const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPassword").value;
 
+  debugLog("Login-Versuch:", { email });
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
+    console.error("Login error:", error);
     showAlert("Anmeldung fehlgeschlagen: " + error.message, "error");
     return;
   }
 
+  debugLog("Login erfolgreich!");
   currentUser = data.user;
   await loadUserProfile();
   await loadUserSubscription();
+
+  if (!currentSubscription && currentProfile) {
+    debugLog("Keine Subscription gefunden, erstelle Demo-Subscription...");
+    try {
+      const subscription = await createDemoSubscription(
+        currentUser.id,
+        currentProfile.user_type,
+        "premium"
+      );
+      currentSubscription = subscription;
+      showAlert("Demo-Subscription aktiviert!", "info");
+    } catch (error) {
+      console.error("Demo-Subscription Error:", error);
+    }
+  }
+
   updateUIBasedOnUserType();
   hideModal("loginModal");
   showAlert("Erfolgreich angemeldet!", "success");
 }
-
-async function handleRegister(e) {
-  e.preventDefault();
-
-  const userType = document.getElementById("registerUserType").value;
-  const name = document.getElementById("registerName").value;
-  const email = document.getElementById("registerEmail").value;
-  const password = document.getElementById("registerPassword").value;
-  const acceptPrivacy = document.getElementById("acceptPrivacy").checked;
-
-  if (!acceptPrivacy) {
-    showAlert("Bitte akzeptiere die Datenschutzerklärung", "error");
-    return;
-  }
-
-  const metadata = {
-    full_name: name,
-    user_type: userType,
-    privacy_accepted: true,
-    privacy_accepted_at: new Date().toISOString(),
-  };
-
-  if (userType === "coach") {
-    const username = document.getElementById("registerUsername").value;
-    if (username)
-      metadata.coach_username = username
-        .toLowerCase()
-        .replace(/[^a-z0-9-]/g, "");
-  } else {
-    metadata.coach_id = selectedCoachId;
-  }
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { data: metadata },
-  });
-
-  if (error) {
-    showAlert("Registrierung fehlgeschlagen: " + error.message, "error");
-    return;
-  }
-
-  hideModal("registerModal");
-
-  if (data.session) {
-    currentUser = data.user;
-    await loadUserProfile();
-    showAlert("Registrierung erfolgreich! Bitte wähle einen Plan.", "success");
-    // Zeige Pricing
-    showLandingPage();
-  } else {
-    showAlert(
-      "Registrierung erfolgreich! Bitte bestätige deine E-Mail.",
-      "success"
-    );
-  }
-}
-// ============================================
-// QUICK FIX: Auto-Subscription für Testing
-// ============================================
-
-// Füge diese Funktion NACH handleRegister() hinzu:
-
-async function createDemoSubscription(userId, userType, plan = "basic") {
-  debugLog("Erstelle Demo-Subscription für:", userId, userType, plan);
-
-  try {
-    const table =
-      userType === "coach" ? "coach_subscriptions" : "customer_subscriptions";
-    const idField = userType === "coach" ? "coach_id" : "customer_id";
-
-    const subscriptionData = {
-      [idField]: userId,
-      plan: plan,
-      status: "active",
-      start_date: new Date().toISOString(),
-      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // +30 Tage
-    };
-
-    // Falls Customer, brauchen wir coach_id
-    if (userType === "customer" && selectedCoachId) {
-      subscriptionData.coach_id = selectedCoachId;
-    }
-
-    const { data, error } = await supabase
-      .from(table)
-      .insert([subscriptionData])
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Subscription Error:", error);
-      throw error;
-    }
-
-    debugLog("Demo-Subscription erstellt:", data);
-    return data;
-  } catch (error) {
-    console.error("createDemoSubscription failed:", error);
-    throw error;
-  }
-}
-
-// ============================================
-// ERSETZE die handleRegister Funktion mit dieser:
-// ============================================
 
 async function handleRegister(e) {
   e.preventDefault();
@@ -752,7 +709,6 @@ async function handleRegister(e) {
 
     debugLog("Signup erfolgreich:", data);
 
-    // Warte kurz, damit Trigger Zeit hat
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     hideModal("registerModal");
@@ -763,15 +719,14 @@ async function handleRegister(e) {
 
       debugLog("Profile geladen, erstelle Demo-Subscription...");
 
-      // WICHTIG: Erstelle automatisch Demo-Subscription
       try {
         const subscription = await createDemoSubscription(
           currentUser.id,
           userType,
-          "premium" // Standard: Premium für Testing
+          "premium"
         );
 
-        userSubscription = subscription;
+        currentSubscription = subscription;
 
         showAlert(
           `Registrierung erfolgreich! Demo-${
@@ -780,7 +735,6 @@ async function handleRegister(e) {
           "success"
         );
 
-        // Update UI
         await new Promise((resolve) => setTimeout(resolve, 500));
         updateUIBasedOnUserType();
       } catch (subError) {
@@ -802,55 +756,6 @@ async function handleRegister(e) {
   }
 }
 
-// ============================================
-// AUCH handleLogin anpassen:
-// ============================================
-
-async function handleLogin(e) {
-  e.preventDefault();
-
-  const email = document.getElementById("loginEmail").value;
-  const password = document.getElementById("loginPassword").value;
-
-  debugLog("Login-Versuch:", { email });
-
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    console.error("Login error:", error);
-    showAlert("Anmeldung fehlgeschlagen: " + error.message, "error");
-    return;
-  }
-
-  debugLog("Login erfolgreich!");
-  currentUser = data.user;
-  await loadUserProfile();
-  await loadUserSubscription();
-
-  // Falls keine Subscription vorhanden, erstelle Demo-Subscription
-  if (!userSubscription && currentProfile) {
-    debugLog("Keine Subscription gefunden, erstelle Demo-Subscription...");
-    try {
-      const subscription = await createDemoSubscription(
-        currentUser.id,
-        currentProfile.user_type,
-        "premium"
-      );
-      userSubscription = subscription;
-      showAlert("Demo-Subscription aktiviert!", "info");
-    } catch (error) {
-      console.error("Demo-Subscription Error:", error);
-    }
-  }
-
-  updateUIBasedOnUserType();
-  hideModal("loginModal");
-  showAlert("Erfolgreich angemeldet!", "success");
-}
-
 async function logout() {
   await supabase.auth.signOut();
   currentUser = null;
@@ -864,13 +769,11 @@ async function logout() {
 // >>> EVENT LISTENERS
 // ============================================
 function initializeEventListeners() {
-  // Login/Logout
   document
     .getElementById("loginBtn")
     ?.addEventListener("click", () => showModal("loginModal"));
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
 
-  // Forms
   document.getElementById("loginForm")?.addEventListener("submit", handleLogin);
   document
     .getElementById("registerForm")
@@ -879,12 +782,10 @@ function initializeEventListeners() {
     .getElementById("uploadForm")
     ?.addEventListener("submit", handleContentUpload);
 
-  // User Type Selection
   document.querySelectorAll(".user-type-btn").forEach((btn) => {
     btn.addEventListener("click", () => selectUserType(btn.dataset.type));
   });
 
-  // Back to User Type Selection
   document
     .getElementById("backToUserTypeSelection")
     ?.addEventListener("click", (e) => {
@@ -893,7 +794,6 @@ function initializeEventListeners() {
       document.getElementById("registerForm").style.display = "none";
     });
 
-  // Modal Closes
   document.querySelectorAll(".close").forEach((closeBtn) => {
     closeBtn.addEventListener("click", function () {
       this.closest(".modal").style.display = "none";
@@ -904,7 +804,6 @@ function initializeEventListeners() {
     if (e.target.classList.contains("modal")) e.target.style.display = "none";
   });
 
-  // Show Register/Login
   document.getElementById("showRegister")?.addEventListener("click", (e) => {
     e.preventDefault();
     hideModal("loginModal");
@@ -917,7 +816,6 @@ function initializeEventListeners() {
     showModal("loginModal");
   });
 
-  // Tabs
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const tabName = btn.getAttribute("data-tab");
@@ -925,7 +823,6 @@ function initializeEventListeners() {
     });
   });
 
-  // Cookie Consent
   document.getElementById("acceptAll")?.addEventListener("click", () => {
     CookieConsent.setConsent(true, true);
     CookieConsent.hideBanner();
@@ -945,15 +842,12 @@ function initializeEventListeners() {
       CookieConsent.showBanner();
     });
 
-  // Subscription Buttons
   document.querySelectorAll(".subscribe-btn").forEach((btn) => {
     btn.addEventListener("click", handleSubscriptionClick);
   });
 
-  // File Upload
   initializeFileUpload();
 
-  // Landing Page CTAs
   document.getElementById("startCoachBtn")?.addEventListener("click", () => {
     showModal("registerModal");
     selectUserType("coach");
@@ -984,6 +878,8 @@ async function initCoachSearch() {
   const searchInput = document.getElementById("coachSearchInput");
   const resultsDiv = document.getElementById("coachSearchResults");
 
+  if (!searchInput || !resultsDiv) return;
+
   searchInput.addEventListener("input", async (e) => {
     const query = e.target.value.toLowerCase();
 
@@ -1003,10 +899,10 @@ async function initCoachSearch() {
       resultsDiv.innerHTML = data
         .map(
           (coach) => `
-        <div class="coach-search-result" onclick="selectCoach('${coach.id}', '${coach.full_name}')" style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;">
+        <div class="coach-search-result" onclick="window.selectCoach('${coach.id}', '${coach.full_name}')" style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;">
           <strong>${coach.full_name}</strong>
           <br>
-          <small>@${coach.coach_username}</small>
+          <small>@${coach.coach_username || "kein-username"}</small>
         </div>
       `
         )
@@ -1047,17 +943,22 @@ function showPaymentModal(plan, userType) {
   const prices = { basic: 29, premium: 59, elite: 99 };
   const planNames = { basic: "Basic", premium: "Premium", elite: "Elite" };
 
-  document.getElementById("paymentInfo").innerHTML = `
-    <div class="alert alert-success">
-      <strong>${planNames[plan]}-Plan</strong><br>
-      €${prices[plan]} / Monat
-    </div>
-  `;
+  const paymentInfo = document.getElementById("paymentInfo");
+  if (paymentInfo) {
+    paymentInfo.innerHTML = `
+      <div class="alert alert-success">
+        <strong>${planNames[plan]}-Plan</strong><br>
+        €${prices[plan]} / Monat
+      </div>
+    `;
+  }
 
-  document.getElementById("paymentForm").setAttribute("data-plan", plan);
-  document
-    .getElementById("paymentForm")
-    .setAttribute("data-user-type", userType);
+  const paymentForm = document.getElementById("paymentForm");
+  if (paymentForm) {
+    paymentForm.setAttribute("data-plan", plan);
+    paymentForm.setAttribute("data-user-type", userType);
+  }
+
   showModal("paymentModal");
 }
 
@@ -1099,7 +1000,7 @@ function switchTab(tabName) {
   if (activeContent) activeContent.classList.add("active");
 }
 
-// Make functions globally available
+// Global Functions
 window.editContent = async (contentId) => {
   showAlert("Edit-Funktion kommt noch", "info");
 };
